@@ -1,4 +1,3 @@
-```yaml
 ---
 trigger: glob
 globs: [js, ts, java, py, rb, go, php, cs]
@@ -40,4 +39,3 @@ examples:
       encrypted_pw = encrypt(user_password)  # reversible encryption
   - incorrect: |
       bcrypt_hash = bcrypt.hashpw(user_password.encode(), bcrypt.gensalt(rounds=5))  # work factor too low
-```

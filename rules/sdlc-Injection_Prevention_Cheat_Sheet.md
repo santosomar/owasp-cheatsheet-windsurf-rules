@@ -1,13 +1,12 @@
-```yaml
 ---
 trigger: glob
 globs: [java, js, py, php, rb, go, cs, sql, ldap, sh, bat]
 ---
-id: injection-prevention
-message: |
+
+
   Injection flaws occur when untrusted input alters commands or queries.
   Follow best practices to prevent injection vulnerabilities across SQL, LDAP, and OS commands.
-severity: error
+
 patterns:
   - pattern: '" + $UNTRUSTED + "'
     message: Avoid string concatenation with untrusted input to build queries or commands. Use parameterized APIs instead.

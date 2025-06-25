@@ -1,31 +1,17 @@
-```yaml
 ---
 trigger: glob
 globs: [.js,.ts,.java,.py,.go,.rb,.cs,.php,.json,.yaml,.yml,.xml]
 ---
 
-id: rest-security-best-practices
-message: |
-  Follow REST security best practices to protect your API and users.
-
-description: |
-  This rule highlights critical REST API security measures developers must implement,
+This rule highlights critical REST API security measures developers must implement,
   including HTTPS enforcement, access control, JWT handling, input validation, 
   method restrictions, and secure error handling.
 
-severity: warning
 
-tags:
-  - security
-  - rest
-  - api
-
-references:
-  - https://cheatsheetseries.owasp.org/cheatsheets/REST_Security_Cheat_Sheet.html
 
 check:
   any_of:
-    # 1. Ensure HTTPS usage - discourage plain HTTP URLs or HTTP server configs
+     1. Ensure HTTPS usage - discourage plain HTTP URLs or HTTP server configs
     - pattern-inside: |
         http://
     - pattern: |
@@ -33,7 +19,7 @@ check:
     - pattern: |
         httpServer.listen(
     
-    # 2. Access control per API endpoint (presence of auth checks in handlers)
+     2. Access control per API endpoint (presence of auth checks in handlers)
     - pattern-inside: |
         if (!auth || !checkAccess(...
     - pattern-inside: |
@@ -41,7 +27,7 @@ check:
     - pattern-inside: |
         authorize(
     
-    # 3. JWT usage & validation common patterns
+     3. JWT usage & validation common patterns
     - pattern-inside: |
         jwt.verify(token, ...)
     - pattern-inside: |
@@ -51,7 +37,7 @@ check:
     - pattern-inside: |
         validateClaims(token.payload.iss, token.payload.aud, token.payload.exp, token.payload.nbf)
     
-    # 4. API key usage and rate limiting
+     4. API key usage and rate limiting
     - pattern-inside: |
         checkApiKey(...)
     - pattern-inside: |
@@ -59,14 +45,14 @@ check:
     - pattern-inside: |
         revokeApiKey(...)
     
-    # 5. HTTP method allowlisting and response on disallowed methods
+     5. HTTP method allowlisting and response on disallowed methods
     - pattern-inside: |
         if (method not in allowedMethods)
         return 405
     - pattern-inside: |
         router.method('GET', ...)
     
-    # 6. Input validation and filtering
+     6. Input validation and filtering
     - pattern-inside: |
         validateInput(...)
     - pattern-inside: |
@@ -74,30 +60,30 @@ check:
     - pattern-inside: |
         if (!regex.test(input))
     
-    # 7. Content-Type strict validation for requests and responses
+     7. Content-Type strict validation for requests and responses
     - pattern-inside: |
         if (contentType !== 'application/json')
         return 415
     - pattern-inside: |
         response.headers['Content-Type'] = 'application/json'
     
-    # 8. Management endpoint protection
+     8. Management endpoint protection
     - pattern-inside: |
         if (isManagementEndpoint(path))
         requireMfaAuth()
     
-    # 9. Generic error message handling
+     9. Generic error message handling
     - pattern-inside: |
         catch (error)
         return genericErrorMessage()
     
-    # 10. Audit logging of security events
+     10. Audit logging of security events
     - pattern-inside: |
         logSecurityEvent(...)
     - pattern-inside: |
         sanitizeLogData(...)
     
-    # 11. Security HTTP headers enforced
+     11. Security HTTP headers enforced
     - pattern-inside: |
         response.setHeader('Cache-Control', 'no-store')
     - pattern-inside: |
@@ -109,17 +95,17 @@ check:
     - pattern-inside: |
         response.setHeader('X-Frame-Options', 'DENY')
     
-    # 12. CORS configuration checks
+     12. CORS configuration checks
     - pattern-inside: |
         corsOrigin != '*'
     - pattern-inside: |
         corsDisabled == true
     
-    # 13. Sensitive data in URL prevention
+     13. Sensitive data in URL prevention
     - pattern-inside: |
         if (url contains 'password' || 'token' || 'apikey')
     
-    # 14. Proper HTTP status code usage
+     14. Proper HTTP status code usage
     - pattern-inside: |
         return 401
     - pattern-inside: |
@@ -144,9 +130,3 @@ fix: |
   - Disable CORS unless required; if enabled, restrict allowed origins as tightly as possible.
   - Do not pass sensitive data via URL paths or query parameters; use headers or POST/PUT bodies instead.
   - Use semantically correct HTTP status codes for authentication, authorization, method, and rate-limiting issues to aid clients.
-
-summary: |
-  To secure REST APIs, always use HTTPS, validate JWT tokens and inputs strictly,
-  restrict HTTP methods and CORS carefully, protect management endpoints, avoid leaking sensitive info in URLs,
-  emit proper status codes, use security headers, and maintain secure audit logs.
-```

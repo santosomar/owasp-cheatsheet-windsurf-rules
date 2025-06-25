@@ -1,15 +1,10 @@
-```yaml
 ---
 trigger: glob
 globs: [.java, .js, .ts, .py, .go, .rb, .php]
 ---
 
-rule:
-  id: ssrf-prevention
-  name: "Prevent Server-Side Request Forgery (SSRF)"
-  message: |
-    SSRF vulnerabilities arise when untrusted input controls destination of network requests.
-    Follow these best practices to protect your application:
+  SSRF vulnerabilities arise when untrusted input controls destination of network requests.
+  Follow these best practices to protect your application:
 
     1. Never accept raw URLs from users. Only accept validated IP addresses or domain names.
     2. Use trusted, battle-tested libraries to validate IP and domain formats; avoid homemade regex.
@@ -29,27 +24,27 @@ rule:
     8. In cloud environments, migrate to secure metadata services (e.g., AWS IMDSv2) and disable vulnerable versions.
     9. Integrate static analysis and automated scanning tools to detect SSRF risks early.
 
-  severity: HIGH
+  
   languages: [java, javascript, typescript, python, go, ruby, php]
   patterns:
     - pattern-either:
-      # Flag potentially dangerous usage of raw URLs from user input in request code
+     Flag potentially dangerous usage of raw URLs from user input in request code
       - pattern: |
           $client.$method($url, ...)
-        where:
+        where:  
           $url = $inputUser
       - pattern: |
           new URL($url)
         where:
           $url = $inputUser
-      # Flag usage of dangerous risky protocols
+      Flag usage of dangerous risky protocols
       - pattern-regex: \b(file|ftp|gopher|smb):\/\/
-      # Flag absence of redirect disabling config or calls disabling redirects
+      Flag absence of redirect disabling config or calls disabling redirects
       - pattern-not: |
           $client.setFollowRedirects(false)
           OR
           http_client.set_allow_redirects(False)
-      # Flag missing token parameter in POST requests to dynamic external URLs
+      Flag missing token parameter in POST requests to dynamic external URLs
       - pattern: |
           $client.post($url, $params)
         where:
@@ -66,4 +61,3 @@ rule:
     - Regularly monitor DNS resolution of allowlisted domains to detect unexpected internal IP resolutions.
     - Migrate to secure cloud metadata services (e.g., AWS IMDSv2), disabling older, vulnerable versions.
     - Use static analysis tools to detect SSRF risks early.
-```

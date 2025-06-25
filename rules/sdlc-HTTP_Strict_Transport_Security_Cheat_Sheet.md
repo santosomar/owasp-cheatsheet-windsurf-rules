@@ -1,13 +1,12 @@
-```yaml
 ---
 trigger: glob
 globs: [js, ts, java, py, rb, go, php, html, htm, asp, aspx]
 ---
 rule: enforce-http-strict-transport-security
-message: |
+
   Ensure your web application sets a proper HTTP Strict Transport Security (HSTS) header to protect users by enforcing HTTPS exclusively.
 
-description: |
+
   HTTP Strict Transport Security (HSTS) is a critical security header that instructs browsers to interact with your site only over HTTPS, protecting users from man-in-the-middle attacks, protocol downgrade attacks, and invalid certificate acceptance.
 
 best_practices:

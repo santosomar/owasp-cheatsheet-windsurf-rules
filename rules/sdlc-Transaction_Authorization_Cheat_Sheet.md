@@ -1,11 +1,10 @@
-```yaml
 ---
 trigger: glob
 globs: [js, ts, java, py, rb, go, cs, php]
 ---
 
 rule: TransactionAuthorizationBestPractices
-message: >
+
   Ensure robust transaction authorization by implementing user-consent validation,
   server-side enforcement, unique per-transaction credentials, and protection against
   tampering, downgrade attacks, and brute force.

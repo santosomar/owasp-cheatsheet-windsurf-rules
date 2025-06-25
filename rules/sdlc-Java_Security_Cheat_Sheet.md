@@ -4,8 +4,7 @@ globs: [java]
 ---
 
 Ensure secure coding in Java by preventing injection attacks and following cryptographic best practices.
-severity: warning
-tags: [security, injection, cryptography, java]
+
 
 patterns:
   - pattern-either:

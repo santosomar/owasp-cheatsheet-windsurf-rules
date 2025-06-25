@@ -1,11 +1,10 @@
-```yaml
 ---
 trigger: glob
 globs: [Dockerfile]
 ---
 
-id: secure-nodejs-docker-container
-message: |
+
+
   Ensure your Node.js Docker container follows best security practices:
   - Pin base image exactly by tag and SHA256 digest (e.g. FROM node:lts-alpine@sha256:...).
   - Prefer minimal base images like node:lts-alpine to reduce attack surface.
@@ -27,7 +26,7 @@ recommendation: |
   Follow these practices to build secure, efficient, and maintainable Node.js Docker images ready for production deployments.
   Review your Dockerfile and CI/CD pipelines to enforce these rules and automate scanning.
 
-severity: medium
+
 patterns:
   - pattern-either:
       - pattern: |

@@ -1,12 +1,10 @@
-```yaml
 ---
 trigger: glob
 globs: [java]
 ---
 
-rule: Secure JWT Usage in Java
-short: Enforce best practices for JWT handling to prevent common security risks.
-security-recommendations:
+
+
   - Use a robust JWT library and always explicitly specify and verify a strong signing algorithm (e.g., HMAC256 or RSA).
     example: |
       JWTVerifier verifier = JWT.require(Algorithm.HMAC256(key)).build();

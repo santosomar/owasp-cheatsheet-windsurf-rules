@@ -1,16 +1,15 @@
-```yaml
 ---
 trigger: glob
 globs: [cs, config, cshtml, json, xml]
 ---
 
-id: dotnet-secure-coding-best-practices
+
 message: Follow OWASP .NET Security Cheat Sheet best practices to build secure .NET applications.
 languages: [csharp, json, xml]
-severity: high
+ high
 tags: [security, dotnet, best-practices, authentication, cryptography, injection, csrf, configuration]
 
-description: |
+
   This rule highlights critical security best practices for .NET developers based on OWASP's DotNet Security Cheat Sheet. Adhering to these guidelines helps prevent common vulnerabilities and ensures robust protection for your applications.
 
 recommendation: |

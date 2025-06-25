@@ -1,12 +1,11 @@
-```yaml
 ---
 trigger: glob
 globs: [java]
 ---
-id: injection-prevention-java
+
 name: Injection Prevention in Java
 message: "Ensure your Java code prevents injection attacks by following these best practices."
-severity: warning
+
 patterns:
   - pattern-either:
       - pattern: |

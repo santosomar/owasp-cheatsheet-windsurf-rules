@@ -1,16 +1,12 @@
-```yaml
 ---
 trigger: glob
 globs: [java, php, cs, rb, rs, js, ts]
 ---
 
-id: avoid-unvalidated-redirects
-message: |
+
+
   Avoid unvalidated redirects and forwards. Do not use raw user input to determine redirect or forward URLs.
   This prevents phishing attacks and access control bypass.
-
-severity: error
-languages: [java, php, csharp, ruby, rust, javascript, typescript]
 
 patterns:
   - pattern-either:

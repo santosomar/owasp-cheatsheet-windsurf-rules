@@ -1,11 +1,9 @@
-```yaml
 ---
 trigger: glob
 globs: [xml, saml, jsp, java, py, js]
 ---
 
-rule "Secure SAML SSO Implementation"
-desc "Ensure SAML SSO is implemented following OWASP best practices to prevent common security issues like signature wrapping, token replay, and improper validation."
+Ensure SAML SSO is implemented following OWASP best practices to prevent common security issues like signature wrapping, token replay, and improper validation.
 
 # Transport Security
 check: |
@@ -63,7 +61,7 @@ check: |
   # Rigorously validate all inputs from SAML messages as untrusted external data.
   # Use modern cryptography; avoid weak or deprecated algorithms like RSA 1.5 XML Encryption.
 
-advise: |
+
   Always enforce strict schema validation and signature verification with local trusted keys.
   Protect all SAML transport with TLS 1.2+ and encrypt assertions where possible.
   Validate all required protocol elements and prevent replay attacks.
@@ -72,4 +70,3 @@ advise: |
   Avoid IdP-initiated SSO flows unless fully validated and secured.
   Maintain strong certificate validation and session management.
   Finally, treat all SAML inputs as untrusted and use current cryptographic standards only.
-```

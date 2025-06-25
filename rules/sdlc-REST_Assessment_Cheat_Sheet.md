@@ -1,12 +1,10 @@
-```yaml
 ---
 trigger: glob
 globs: [js,ts,java,py,rb,go,cs,json,xml,conf,yml,yaml]
 ---
-id: rest-assessment-best-practices
-message: |
+
   Follow these best practices when developing or testing RESTful web services to ensure secure, effective assessment and improve overall security posture:
-details:
+
   - Use standard HTTP methods (GET, POST, PUT, DELETE) appropriately to align with REST principles.
   - Clearly document all REST endpoints, parameters (URL segments, headers, request body), and expected data formats (JSON, XML).
   - Recognize that many parameters may be embedded in URL paths or custom headers rather than just query strings.
@@ -18,6 +16,4 @@ details:
   - Verify suspected URL path parameters by testing invalid values and observing server vs. application-level error responses.
   - Consider adopting or providing formal service descriptions (WADL, WSDL 2.0) or developer guides to ease assessment.
   - Always emulate the authentication mechanisms properly during security testing to avoid false negatives.
-severity: medium
-tags: [rest, security-testing, fuzzing, api, best-practice]
-```
+

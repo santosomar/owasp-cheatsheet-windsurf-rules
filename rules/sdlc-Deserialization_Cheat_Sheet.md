@@ -3,12 +3,12 @@ trigger: glob
 globs: [java, cs, py, php, xml, json, yml, yaml]
 ---
 
-rule: Avoid Unsafe Deserialization of Untrusted Data
+Avoid Unsafe Deserialization of Untrusted Data
 
-description: |
+
   Deserialization of untrusted input can lead to critical vulnerabilities such as remote code execution, denial of service, and privilege escalation. This rule ensures developers follow best practices to safely handle serialization and deserialization operations.
 
-recommendations:
+
   - Always treat incoming serialized data from untrusted sources as hostile.
   - Prefer standardized, safe data formats like JSON or XML without type metadata over native serialization formats.
   - Avoid using unsafe native serialization APIs on untrusted input, such as:
@@ -25,9 +25,8 @@ recommendations:
   - Use hardened deserialization agents/tools (e.g., SerialKiller, hardened ObjectInputStream subclasses, JVM agents).
   - Regularly scan code and dependencies for unsafe deserialization patterns using static and dynamic analysis tools.
 
-security_impact: High - insecure deserialization can lead to remote code execution and complete system compromise.
 
-why:
+
   Deserialization attacks are a frequently exploited vector leading to severe security impacts. Following these practices prevents attackers from injecting malicious objects or payloads that the application may execute.
 
 examples:
@@ -42,9 +41,3 @@ examples:
     - Python: use `yaml.safe_load()` or custom parsers.
     - .NET: use `DataContractSerializer` with explicit known types and disable type name handling.
 
-references:
-  - https://owasp.org/www-project-top-ten/ (A9:2017 - Using Components with Known Vulnerabilities)
-  - https://cheatsheetseries.owasp.org/cheatsheets/Deserialization_Cheat_Sheet.html
-
-action_for_developers: |
-  Review all deserialization logic in your codebase. Replace unsafe native deserialization calls with safe formats and libraries. Implement strict class allowlists and avoid any dynamic type loading. Sign and verify serialized data when possible. Keep all libraries up-to-date and monitor security advisories related to deserialization vulnerabilities.

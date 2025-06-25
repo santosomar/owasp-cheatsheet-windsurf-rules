@@ -1,106 +1,51 @@
-```yaml
 ---
 trigger: glob
-globs: [json, js, jsx, ts, tsx, html, css]
+globs: .json, .js, .jsx, .ts, .tsx, .html, .css
 ---
 
-rule: secure-browser-extension-development
-name: Secure Browser Extension Development Best Practices
-message: Follow these critical security best practices when building browser extensions to protect users and their data.
-severity: warning
-metadata:
-  category: security
-  technology: browser-extensions
-  reference: OWASP Browser Extensions Cheat Sheet
+As a software engineer developing browser extensions, you hold a position of great trust. An extension can access sensitive user data and modify web page content, making security a top priority. Here are the key areas to focus on.
 
-patterns:
-  - pattern-either:
-      patterns:
-        - pattern: '"permissions":\s*\[\s*".*"\s*\]'
-        - pattern: '"optional_permissions":\s*\[\s*".*"\s*\]'
-    message: |
-      ⚠️ Apply principle of least privilege: Only request permissions your extension absolutely needs.
-      Avoid broad or overly permissive entries like "tabs" or unrestricted URL patterns ("http://*/*").
-      Regularly audit and remove unused permissions from manifest.json.
+### 1. The Manifest: Your Security Foundation
 
-  - pattern-either:
-      patterns:
-        - pattern: 'http://'
-        - pattern: 'new\s+WebSocket\s*\(\s*"ws://'
-    message: |
-      🚫 Avoid insecure network communication:
-      Always use HTTPS (and wss) URLs to encrypt data in transit and prevent interception.
+Your `manifest.json` file is the heart of your extension's security model. Configure it with the principle of least privilege.
 
-  - pattern-not-inside:
-      language: json
-      scope: string.quoted.double.json
-      patterns:
-        - pattern: '"storage"'
-    patterns:
-      - pattern: 'localStorage\.setItem'
-      - pattern: 'localStorage\.getItem'
-    message: |
-      ⚠️ Avoid localStorage for sensitive data storage; prefer the Chrome Storage API which is more secure.
-      Encrypt sensitive information before storage and never store secrets hardcoded in your source code.
+*   **Permissions:** Only request the permissions your extension absolutely needs to function. Avoid broad host permissions like `<all_urls>` or `http://*/*`. If you only need to access a few sites, specify them explicitly.
+*   **Content Security Policy (CSP):** Define a strict CSP to mitigate XSS and other injection attacks. A good starting point is:
 
-  - pattern-either:
-      patterns:
-        - pattern-either:
-            patterns:
-              - pattern: 'content_security_policy\s*:\s*".*"'
-              - pattern: '"content_security_policy"\s*:\s*".*"'
-        - pattern: 'eval\s*\('
-        - pattern: 'new Function\('
-        - pattern: 'import\(.*\)'
-    message: |
-      🛡️ Mitigate code injection risks:
-      Define a strict Content Security Policy (CSP) that disallows inline scripts and restricts sources.
-      Avoid dynamic code execution via eval(), new Function(), and dynamic import().
-      Do not load or execute scripts from untrusted or remote locations.
+    ```json
+    "content_security_policy": {
+      "extension_pages": "script-src 'self'; object-src 'self'"
+    }
+    ```
 
-  - pattern:
-      - pattern: 'innerHTML\s*='
-      - pattern-not-inside: 'sanitizer|DOMPurify'
-    message: |
-      ✋ Sanitize all user inputs before injecting into the DOM.
-      Avoid using innerHTML with untrusted data; favor safer APIs like textContent or libraries like DOMPurify.
+    This policy disallows inline scripts and `eval()`, and restricts script and object sources to your extension's own package.
 
-  - pattern:
-      - pattern: '"dependencies"'
-    message: |
-      🔄 Regularly audit and update third-party dependencies using tools like npm audit or OWASP Dependency-Check.
-      Use trusted, actively maintained libraries with a history of prompt security fixes.
+### 2. Secure Coding Practices
 
-  - pattern:
-      - pattern: 'fetch\([^)]*\)'
-      - pattern-not-inside: 'manifest.json'
-      - pattern-not-inside: 'chrome\.runtime\.sendMessage'
-    message: |
-      ⚠️ Do not fetch or execute extension updates or scripts from untrusted external servers.
-      Rely solely on official signed extension updates from marketplaces.
-      If loading code programmatically, implement integrity verification.
+*   **Avoid Dynamic Code Execution:** Never use `eval()`, `new Function()`, or `setTimeout()` with non-static string arguments. These are major security risks.
+*   **Sanitize DOM Inputs:** To prevent XSS from content scripts, never use `.innerHTML` with data that isn't fully sanitized. Prefer safer APIs like `.textContent`, or use a trusted library like DOMPurify.
 
-  - pattern:
-      - pattern: 'document\.body|document\.querySelector'
-    message: |
-      🔒 Prevent DOM-based data leakage:
-      Do not inject sensitive user data directly into web pages where page scripts can access it.
-      Use extension-owned UI components (popups, options pages, sidebars) to display sensitive information.
-      Shadow DOM alone is insufficient for isolation; use proper UI separation.
+    **Example:**
+    ```javascript
+    // Insecure:
+    document.getElementById('user-greeting').innerHTML = `Welcome, ${userInput}!`;
 
-# Summary advice for developers (can be shown as a related message or documentation link)
-documentation: |
-  **Secure Extension Development Summary:**
+    // Secure:
+    document.getElementById('user-greeting').textContent = `Welcome, ${userInput}!`;
+    ```
 
-  - Limit permissions strictly using the principle of least privilege.
-  - Always use HTTPS for all network communications.
-  - Store sensitive data securely; avoid localStorage and hardcoded secrets.
-  - Enforce a strict Content Security Policy (CSP) to prevent code injection and XSS.
-  - Sanitize all user input before use in the DOM; prefer safe APIs.
-  - Do not fetch or execute remote code dynamically.
-  - Audit and maintain third-party dependencies regularly.
-  - Isolate sensitive UI components from page context to prevent data skimming.
-  - Provide transparent privacy policies and obtain explicit user consent.
-  
-Following these guidelines protects users from privacy violations, data theft, and malicious code execution.
-```
+### 3. Data Storage and Communication
+
+*   **Use `chrome.storage`:** Avoid `localStorage` for storing any sensitive information. `localStorage` is accessible by any script on the same origin, including potentially malicious scripts injected into the page. Use the `chrome.storage` API instead, which is isolated to your extension.
+*   **Encrypt Sensitive Data:** Before storing any sensitive user data, encrypt it.
+*   **Use HTTPS:** All network communication must use HTTPS (`wss://` for WebSockets) to protect data in transit.
+
+### 4. Interacting with Web Pages
+
+*   **Isolate Sensitive UI:** Do not inject sensitive information directly into a web page's DOM. A malicious script on the page could scrape this data. Instead, display sensitive information in extension-owned UI elements like popups, sidebars, or options pages.
+*   **Use Message Passing:** Use the standard message passing APIs (`chrome.runtime.sendMessage`, `chrome.tabs.sendMessage`) for communication between your content scripts and background scripts. Do not use the DOM as a communication channel.
+
+### 5. Supply Chain Security
+
+*   **Audit Dependencies:** Regularly audit your third-party libraries using tools like `npm audit`. A malicious or vulnerable dependency can compromise your entire extension.
+*   **No Remote Code:** Do not fetch and execute remote code. All of your extension's logic should be included in its initial package. This is a requirement for most browser extension marketplaces.

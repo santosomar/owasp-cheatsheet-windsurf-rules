@@ -1,4 +1,3 @@
-```yaml
 ---
 trigger: glob
 globs: [yaml,yml,json,md,dot,proto,java,js,ts,go,py]

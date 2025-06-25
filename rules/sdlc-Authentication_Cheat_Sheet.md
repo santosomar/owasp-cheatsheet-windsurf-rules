@@ -1,105 +1,34 @@
-```yaml
 ---
 trigger: glob
-globs: [js,jsx,ts,tsx,java,py,rb,php,go,c,cpp,cs]
+globs: .js, .jsx, .ts, .tsx, .java, .py, .rb, .php, .go, .cs, .html, .config, .xml, .yml, .yaml
 ---
 
-id: owasp-authentication-best-practices
-name: OWASP Authentication Cheat Sheet - Best Practices
-severity: high
-description: |
-  Enforce secure and robust authentication mechanisms aligned with OWASP recommendations.
+As a software engineer, building secure authentication is one of the most critical aspects of application development. Here are best practices to follow, aligned with OWASP recommendations.
 
-tags: [security, authentication, best-practices]
+### 1. User Identification and Passwords
 
-rules:
-  - id: unique-user-identifiers
-    message: Use unique, random user IDs and verify emails for login identification to prevent account enumeration.
-    languages: [js,jsx,ts,tsx,java,py,rb,php,go,c,cpp,cs]
-    patterns:
-      - pattern-either:
-          - pattern: "user.id = generateRandomId()"
-          - pattern: "user.emailVerified == true"
-    remediation: |
-      Ensure user identifiers are unpredictable and email ownership is verified before login acceptance.
+*   **Prevent Account Enumeration:** Use non-public, random, and unique identifiers for users internally. For login, allow users to use their verified email address or a username, but ensure error messages are generic (e.g., "Invalid username or password") to prevent attackers from guessing valid accounts.
+*   **Strong Password Policies:** Enforce a minimum password length of 8 characters and support up to at least 64 characters. Allow all characters, including Unicode and spaces, and avoid complex composition rules (e.g., "must have one uppercase, one number..."). Never truncate passwords.
+*   **Secure Password Storage:** Store user passwords using a modern, strong, and slow hashing algorithm like **Argon2** (preferred) or **bcrypt**. Use a unique salt for each user.
+*   **Support Password Managers:** Use standard `<input type="password">` fields and allow pasting to ensure compatibility with password managers.
 
-  - id: internal-account-protection
-    message: Internal or sensitive accounts must NOT be exposed on public login forms and systems.
-    remediation: |
-      Separate internal account authentication from public-facing endpoints.
+### 2. Secure Authentication Process
 
-  - id: password-policy-guidance
-    message: |
-      Enforce a minimum password length of 8 characters; support passwords at least 64 characters long.
-      Avoid forced composition rules; allow all Unicode and whitespace characters.
-      Never silently truncate passwords.
-    remediation: |
-      Review password validation logic to comply with inclusive and user-friendly policies.
+*   **Use TLS Everywhere:** All communication transmitting credentials, session tokens, or any sensitive data must be over HTTPS.
+*   **Constant-Time Comparisons:** When comparing password hashes, use a secure, constant-time comparison function to prevent timing attacks.
+*   **Protect Against Automated Attacks:**
+    *   **Throttling:** Implement account-based throttling with an exponential backoff on failed login attempts.
+    *   **CAPTCHA:** Use CAPTCHA after a small number of failed attempts.
+    *   **Multi-Factor Authentication (MFA):** This is one of the most effective controls. Encourage or enforce MFA for all users.
 
-  - id: password-storage-and-comparison
-    message: Store passwords using modern strong hashing (e.g., bcrypt, Argon2) and compare hashes using constant-time, type-safe functions.
-    remediation: |
-      Use libraries from OWASP Password Storage Cheat Sheet and avoid insecure comparison methods.
+### 3. Account Management
 
-  - id: password-change-requirements
-    message: Require verification of current password and an active session before allowing password changes.
-    remediation: |
-      Implement server-side checks to prevent unauthorized password resets or changes.
+*   **Secure Password Changes:** Before a user can change their password, require them to re-enter their current password.
+*   **Secure Email Changes:** Changing a registered email address is a highly sensitive operation. Protect it by requiring strong identity verification (like MFA or password re-entry) and sending a confirmation link to both the old and new email addresses.
+*   **Separate Internal Accounts:** Internal or administrative accounts should not be accessible from public login forms. Use a separate, more secure authentication system for internal users.
 
-  - id: transport-layer-security
-    message: Always use TLS/HTTPS to transmit credentials and session tokens.
-    remediation: |
-      Enforce HTTPS redirects and disable fallback to insecure HTTP.
+### 4. Modern Authentication and Monitoring
 
-  - id: generic-error-messages
-    message: Return non-specific error messages (e.g. "Invalid username or password") on authentication failures to prevent user enumeration.
-    remediation: |
-      Avoid error details, varied HTTP status codes, or error URLs that reveal account state.
-
-  - id: consistent-response-timing
-    message: Normalize authentication response times regardless of failure reason to mitigate timing attacks.
-    remediation: |
-      Implement artificial delay or constant-time processing on login failures.
-
-  - id: automated-attack-mitigation
-    message: Implement MFA, throttling with exponential backoff per account, and CAPTCHAs after failed attempts.
-    remediation: |
-      Avoid relying solely on IP-based lockouts; prefer account-centric protections alongside MFA deployment.
-
-  - id: password-manager-support
-    message: Use standard HTML password input fields allowing paste and support passwords 64+ characters.
-    remediation: |
-      Avoid custom or plugin-based login methods that break password manager compatibility.
-
-  - id: email-change-protocol
-    message: Enforce strong identity verification (MFA or password re-entry) and dual confirmation via time-limited email links before changing registered email addresses.
-    remediation: |
-      Use nonces for verification and notify old email addresses to prevent account takeover.
-
-  - id: logging-and-monitoring
-    message: Log and monitor authentication failures, password failures, and account lockouts in real time.
-    remediation: |
-      Integrate with SIEMs or alerting tools to detect possible account attacks promptly.
-
-  - id: modern-auth-protocols
-    message: Use OAuth2, OpenID Connect, SAML 2.0, or FIDO U2F/UAF over password sharing for delegated or federated authentication.
-    remediation: |
-      Prefer modern, standardized protocols for authentication and authorization.
-
-  - id: adaptive-authentication
-    message: Implement risk-based authentication adjusting challenges dynamically based on device, location, and behavior risk assessment.
-    remediation: |
-      Define risk scoring and enforce step-up authentication or block suspicious activity accordingly.
-
-summary: |
-  - Secure authentication endpoints with TLS.
-  - Use strong, user-friendly password policies without arbitrary complexity.
-  - Prevent user enumeration with generic errors and consistent timing.
-  - Deploy MFA, throttling, and CAPTCHA to protect against automated attacks.
-  - Support modern auth protocols for delegated access.
-  - Implement robust workflows for sensitive changes like password and email updates.
-  - Log authentication events for real-time monitoring.
-  - Adapt authentication strength dynamically based on risk signals.
-  
-  Following these practices will improve security while maintaining usability.
-```
+*   **Use Modern Protocols:** For delegated or federated authentication, use established protocols like **OAuth 2.0**, **OpenID Connect (OIDC)**, or **SAML**. Avoid building your own.
+*   **Adaptive Authentication:** Implement risk-based authentication that can dynamically adjust security challenges. For example, require a step-up authentication (like an MFA prompt) if a user logs in from a new device or location.
+*   **Log and Monitor:** Log all authentication successes and failures, password reset requests, and account lockouts. Monitor these logs in real-time to detect and respond to attacks.

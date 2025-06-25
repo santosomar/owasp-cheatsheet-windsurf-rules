@@ -1,46 +1,143 @@
-```yaml
 ---
 trigger: glob
-globs: [.js, .jsx, .ts, .tsx, .html]
+globs: .js, .jsx, .ts, .tsx, .html
 ---
 
-id: prevent-dom-clobbering
-message: |
-  Prevent DOM Clobbering attacks by following secure coding and sanitization best practices.
-severity: warning
-pattern-either:
-  - pattern: 'let $VAR = $VAL'
-  - pattern: 'const $VAR = $VAL'
-  - pattern: 'var $VAR = $VAL'
-  - pattern-not: 'window.$VAR'
-  - pattern-not: 'document.$VAR'
-  - pattern-not: '<* id=$ID>'
-  - pattern-not: '<* name=$NAME>'
-  - pattern-not: 'unsafeInnerHTML = $HTML'
-  - pattern-not: 'innerHTML = $HTML'
-  - pattern-not: 'document.write($HTML)'
+## Preventing DOM Clobbering Attacks
 
-meta:
-  category: security
-  technology: javascript, html
-  description: |
-    DOM Clobbering can lead to serious security issues by overwriting or shadowing expected JavaScript variables or browser APIs through injected HTML elements with conflicting id or name attributes.
+As a software engineer working with web applications, you should be aware of DOM Clobbering - a subtle but dangerous attack vector where malicious HTML can override JavaScript variables and functions through conflicting HTML element IDs and names.
 
-  recommendation: |
-    1. Always sanitize user-controlled HTML inputs with robust libraries like DOMPurify with SANITIZE_NAMED_PROPS enabled to remove or namespace risky `id` and `name` attributes.
-    2. Avoid storing important state or variables on the global `window` or `document` objects.
-    3. Declare variables explicitly using `let`, `const`, or `var` to prevent implicit globals and reduce clobbering vectors.
-    4. Use strict mode (`"use strict";`) in your JavaScript files to enforce safer variable declarations and catch unintentional globals.
-    5. Validate types before using DOM references (e.g., verify if an object is an `instanceof Element`) to detect and avoid clobbered variables.
-    6. Implement Content Security Policy (CSP) to restrict external script execution and reduce risk of injected code leveraging clobbered objects.
-    7. Consider freezing critical objects using `Object.freeze()` as a partial mitigation against overwriting.
-    8. Use unique naming conventions and encapsulate variables within modules or classes to reduce collision risk.
-    9. Avoid relying on untested or unsupported browser features that may yield undefined globals vulnerable to clobbering.
+### What is DOM Clobbering?
 
-  references:
-    - "https://owasp.org/www-community/attacks/DOM_Based_DOM_Clobbering"
-    - "https://github.com/cure53/DOMPurify#sanitize_named_props"
+DOM Clobbering occurs when an attacker injects HTML with specific `id` or `name` attributes that override or "clobber" JavaScript variables or properties you expect to use. This happens because named HTML elements automatically become properties of the global `window` object and the `document` object.
 
-notes: |
-  This rule reminds developers to treat all HTML and DOM manipulation with caution, explicitly declare variables, and harden the client environment to minimize opportunities for DOM Clobbering attacks.
+**Example of a vulnerability:**
+
+```javascript
+// Your JavaScript code
+if (!window.config) {
+  window.config = { isAdmin: false };
+}
 ```
+
+An attacker could inject:
+```html
+<a id="config" name="config" href="#"><a id="config" name="isAdmin">true</a></a>
+```
+
+Now `window.config.isAdmin` evaluates to `true` instead of `false`!
+
+### Best Practices to Prevent DOM Clobbering
+
+#### 1. Sanitize User-Controlled HTML
+
+Always sanitize HTML from untrusted sources using a robust library like DOMPurify with special configuration for DOM Clobbering protection:
+
+```javascript
+// Enable protection against DOM Clobbering
+import DOMPurify from 'dompurify';
+
+// Enable SANITIZE_NAMED_PROPS to prevent clobbering via id/name attributes
+DOMPurify.setConfig({ SANITIZE_NAMED_PROPS: true });
+
+const sanitizedHtml = DOMPurify.sanitize(userProvidedHtml);
+document.getElementById('content').innerHTML = sanitizedHtml;
+```
+
+#### 2. Use Proper Variable Declarations
+
+Always explicitly declare your variables and avoid implicit globals:
+
+```javascript
+// GOOD: Use explicit declarations
+"use strict"; // Enable strict mode
+const config = { isAdmin: false };
+
+// BAD: Implicit global - vulnerable to clobbering
+config = { isAdmin: false }; // Without var/let/const
+```
+
+#### 3. Avoid Storing Critical Data on Global Objects
+
+Don't store important state or configuration directly on `window` or `document`:
+
+```javascript
+// AVOID this pattern
+window.userIsAdmin = checkAdminStatus();
+
+// BETTER: Use a module or closure
+const userState = (function() {
+  let isAdmin = checkAdminStatus();
+  return {
+    getAdminStatus: () => isAdmin
+  };
+})();
+```
+
+#### 4. Type Checking Before Using DOM References
+
+Verify that objects are what you expect them to be before using them:
+
+```javascript
+// Get a reference that might be clobbered
+const config = window.config;
+
+// Check if it's the expected type before using
+if (config && typeof config === 'object' && !(config instanceof Element)) {
+  // Safe to use config
+  if (config.isAdmin) {
+    // Grant admin privileges
+  }
+}
+```
+
+#### 5. Use Object.freeze() for Critical Objects
+
+Freeze important objects to prevent modification:
+
+```javascript
+const settings = Object.freeze({
+  apiKey: "YOUR_API_KEY",
+  maxRetries: 3,
+  timeout: 5000
+});
+```
+
+#### 6. Implement Content Security Policy (CSP)
+
+Add an additional layer of protection with CSP:
+
+```html
+<!-- In your HTTP headers or meta tag -->
+<meta http-equiv="Content-Security-Policy" content="script-src 'self'">
+```
+
+#### 7. Use Modern JavaScript Features
+
+Leverage ES modules and strict mode to reduce global namespace pollution:
+
+```javascript
+// In a module file (e.g., config.js)
+export const config = {
+  isAdmin: false,
+  theme: 'light'
+};
+
+// In your main file
+import { config } from './config.js';
+```
+
+#### 8. Avoid Risky DOM APIs
+
+Be cautious with DOM APIs that can introduce clobbering risks:
+
+```javascript
+// AVOID when possible with user input
+document.write(userProvidedContent);
+element.innerHTML = userProvidedContent;
+
+// PREFER safer alternatives
+element.textContent = userProvidedContent;
+```
+
+By implementing these practices, you'll significantly reduce the risk of DOM Clobbering attacks in your web applications.

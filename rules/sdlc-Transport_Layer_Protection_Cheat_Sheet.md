@@ -1,15 +1,14 @@
-```yaml
 ---
 trigger: glob
 globs: [md, rst, txt]
 ---
-id: deprecated-transport-layer-protection
+
 name: Deprecated Transport Layer Protection Cheat Sheet Usage
-message: |
+
   The Transport Layer Protection Cheat Sheet is deprecated.
   Please update your references and practices to use the Transport Layer Security Cheat Sheet instead:
   Transport_Layer_Security_Cheat_Sheet.md
-severity: info
+
 tags: [deprecated, documentation, security]
 help: |
   Avoid relying on outdated or deprecated guidance.

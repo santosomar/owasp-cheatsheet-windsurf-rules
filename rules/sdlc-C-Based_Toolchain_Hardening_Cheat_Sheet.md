@@ -1,76 +1,64 @@
-```yaml
 ---
 trigger: glob
-globs: [c, cpp, h, hpp, cc, cxx, inl]
+globs: .c, .cpp, .h, .hpp, .cc, .cxx, .inl, .mk, CMakeLists.txt
 ---
-when:
-  any:
-    - pattern: 'assert\('
-    - pattern-either:
-        - pattern: '#\s*define\s+DEBUG'
-        - pattern: '#\s*define\s+NDEBUG'
-    - pattern-either:
-        - pattern: '-DDEBUG'
-        - pattern: '-DNDEBUG'
-    - pattern: '-Wall'
-    - pattern: '-fstack-protector-all'
-    - pattern: '-fPIE'
-    - pattern: '-pie'
-    - pattern: '-z,noexecstack'
-    - pattern: '-z,relro'
-    - pattern: '-z,now'
-    - pattern: '-mfunction-return=thunk'
-    - pattern: '-mindirect-branch=thunk'
-    - pattern: '_CRT_SECURE_NO_WARNINGS'
-    - pattern: '_SCL_SECURE_NO_WARNINGS'
-    - pattern: '-U_FORTIFY_SOURCE'
-then:
-  message: |
-    ⚠️ **Build Configuration & Security Best Practices**
 
-    1. **Maintain distinct Debug and Release builds:**
-       - Debug: Use instrumentation (e.g., GCC `-O0 -g3 -ggdb`), define `DEBUG`, do **not** define `NDEBUG`.
-       - Release: Optimize (e.g., GCC `-O2 -g2`), define `NDEBUG`, do **not** define `DEBUG`.
-       - Optionally, use a Test build exposing internals for thorough testing.
+As a C/C++ developer, the security of your compiled application depends heavily on the options you pass to your compiler and linker. Modern toolchains provide a powerful set of features to harden your binaries against common exploitation techniques.
 
-    2. **Use assertions properly:**
-       - Assert liberally for input validation and state checking.
-       - Replace standard `assert()` abort behavior with custom handlers that trigger debugger traps (e.g., `SIGTRAP`) in Debug builds.
-       - Disable assertions in Release builds (`NDEBUG` defined) to avoid crashes.
+### 1. Compiler Flags for Hardening
 
-    3. **Enable comprehensive compiler and linker security flags:**
-       - Enable warnings: `-Wall -Wextra -Wconversion -Wformat=2 -Wformat-security`.
-       - Enable protections: `-fstack-protector-all`, `-fPIE -pie`, `-z,noexecstack`, `-z,relro`, `-z,now`.
-       - Apply CPU mitigations as appropriate (`-mfunction-return=thunk`, `-mindirect-branch=thunk`).
+These flags should be a standard part of your release build configuration.
 
-    4. **Respect user and environment flags:**
-       - When overriding build flags (Make/Autotools), merge user-provided flags carefully to not lose security hardening.
-       - Avoid accidental mixing of Debug instrumentation in Release builds.
+*   **Enable All Warnings:** Warnings often point to latent bugs. Start with a strong baseline.
+    *   **GCC/Clang:** `-Wall -Wextra -Wconversion`
+*   **Stack Smashing Protection:** This adds a "canary" to the stack to detect buffer overflows before they can be exploited.
+    *   **GCC/Clang:** `-fstack-protector-all`
+*   **Position-Independent Executables (PIE):** This allows the operating system to load the application at a random memory address (ASLR), making it much harder for attackers to predict memory layouts.
+    *   **Compiler:** `-fPIE`
+    *   **Linker:** `-pie`
+*   **Fortify Source:** This adds checks to common library functions (like `strcpy`, `printf`) to prevent buffer overflows.
+    *   **GCC/Clang:** `-D_FORTIFY_SOURCE=2` (Note: requires optimization `-O1` or higher).
 
-    5. **Integrate diagnostics and platform mitigations:**
-       - Use sanitizers (AddressSanitizer, DMalloc) in Debug builds.
-       - Enable OS mitigations (ASLR via PIE, DEP/NX).
-       - Validate binary hardening with tools like `checksec` (Linux) or BinScope (Windows).
+### 2. Linker Flags for Hardening
 
-    6. **Manage 3rd-party libraries securely:**
-       - Audit and configure dependencies securely (e.g., disable obsolete SSL versions in OpenSSL).
-       - Avoid blind trust in default library build options.
+These flags control how your final executable is constructed.
 
-    7. **Preprocessor macro discipline:**
-       - Never define both `DEBUG` and `NDEBUG`.
-       - Default to `NDEBUG` if neither is defined.
-       - Avoid disabling security warnings via macros like `_CRT_SECURE_NO_WARNINGS`.
+*   **Relocation Read-Only (RELRO):** This makes parts of the binary read-only after the dynamic linker has done its work, preventing certain exploitation techniques like GOT overwrites.
+    *   **GCC/Clang Linker:** `-Wl,-z,relro,-z,now`
+*   **Non-Executable Stack (NX):** This prevents code from being executed from the stack, a hallmark of many exploits.
+    *   **GCC/Clang Linker:** `-Wl,-z,noexecstack`
 
-    8. **Proactive static and dynamic analysis:**
-       - Leverage compiler warnings and static analyzers.
-       - Enable runtime diagnostics (Xcode malloc guards, Visual Studio MDAs).
+### 3. Build Configurations: Debug vs. Release
 
-    9. **Suppress compiler warnings sparingly:**
-       - Only suppress unavoidable warnings selectively.
-       - Prefer explicit error handling and assertions over disabling warnings.
+Maintain separate, distinct build configurations for development and production.
 
-    10. **Runtime protections:**
-        - Enable platform-specific runtime exploit mitigations and monitoring tools.
+*   **Debug Builds:**
+    *   Disable optimizations (`-O0`) and enable full debugging information (`-g3`).
+    *   Define the `DEBUG` macro (`-DDEBUG`) and do **not** define `NDEBUG`.
+    *   Use sanitizers to detect memory errors at runtime (e.g., `-fsanitize=address,undefined`).
+*   **Release Builds:**
+    *   Enable optimizations (e.g., `-O2`).
+    *   Define the `NDEBUG` macro (`-DNDEBUG`) to disable assertions and debugging code. Do **not** define `DEBUG`.
+    *   Include all the hardening flags mentioned above.
 
-    **Summary:** Adopt and enforce distinct Debug and Release builds with strong compiler/linker security flags and custom asserts. Honor user build flags carefully, integrate diagnostics, avoid disabling warnings unsafely, and secure 3rd-party libraries to produce robust, self-debugging, and hardened software.
-```
+### 4. Using Assertions Effectively
+
+Assertions are a powerful tool for catching bugs early.
+
+*   **Best Practice:** Use `assert()` liberally in your code to check for pre-conditions, post-conditions, and invariants. Assertions are automatically disabled in release builds (when `NDEBUG` is defined), so they have no performance impact on your production code.
+
+    ```c
+    void process_data(char *data, size_t len) {
+        assert(data != NULL && "Data pointer cannot be null!");
+        // ...
+    }
+    ```
+
+### 5. Verifying Your Binary
+
+Don't just trust that the flags worked. Use a tool to check the security properties of your final executable.
+
+*   **Linux:** Use the `checksec` tool.
+*   **Windows:** Use Microsoft's BinScope.
+
+By integrating these toolchain hardening practices into your CI/CD pipeline, you can significantly raise the bar for attackers and build more resilient and secure C/C++ applications.

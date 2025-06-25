@@ -1,14 +1,13 @@
-
 ---
 trigger: glob
 globs: [js, ts, py, java, cs, rb, php, go, html, htaccess]
 ---
-id: file-upload-secure-handling
+
 name: Secure File Upload Handling
-description: |
+
   Enforce robust file upload security controls to prevent malicious files and abuse,
   based on OWASP File Upload best practices.
-severity: high
+
 tags: [security, file-upload, injection, dos, malware]
 
 pattern-either:

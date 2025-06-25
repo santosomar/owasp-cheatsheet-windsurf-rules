@@ -1,18 +1,12 @@
-```yaml
 ---
 trigger: glob
 globs: [tf, yaml, yml, json, js, py, java, go, cfg, conf, sh]
 ---
-id: cloud-architecture-security-best-practices
-name: Cloud Architecture Security Best Practices
-description: |
-  Enforce critical security controls in cloud architectures based on OWASP guidance:
+Enforce critical security controls in cloud architectures based on OWASP guidance:
   risk analysis, network segmentation, IAM least privilege, trust model balance,
   WAF and DDoS protection, robust logging/monitoring, and shared responsibility clarity.
-severity: high
-tags: [cloud, architecture, security, iam, network, waf, ddos, logging]
 
-message: |
+
   Review your cloud architecture and code for:
 
   1. Risk analysis & threat modeling guiding design and controls.
@@ -53,9 +47,3 @@ examples:
       - Automated patching pipelines for your container images and VMs
       - Configuring cloud DDoS protections (e.g., AWS Shield, GCP Cloud Armor)
 
-references:
-  - https://cheatsheetseries.owasp.org/cheatsheets/Cloud_Architecture_Security_Cheat_Sheet.html
-  - https://docs.aws.amazon.com/waf/latest/developerguide/waf-chapter.html
-  - https://cloud.google.com/armor/docs/security-policy-overview
-  - https://docs.microsoft.com/en-us/azure/architecture/framework/security/
-```

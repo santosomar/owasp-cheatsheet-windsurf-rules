@@ -1,13 +1,12 @@
-```yaml
 ---
 trigger: glob
 globs: [js, jsx, ts, tsx, java, kt, py, rb, php, go, cs, swift]
 ---
 
-id: prevent-insecure-direct-object-reference
+
 name: Prevent Insecure Direct Object References (IDOR)
 message: "Avoid exposing direct object references without proper access control. Always verify user authorization before accessing or modifying objects."
-severity: high
+
 languages: [javascript, typescript, java, kotlin, python, ruby, php, go, csharp, swift]
 tags: [security, access-control, idor]
 

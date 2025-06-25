@@ -1,10 +1,8 @@
-```yaml
 ---
 trigger: glob
 globs: [.py, .yaml, .yml]
 ---
 
-# DRF Security Best Practices Rule
 
 This rule advises on critical security practices when developing Django REST Framework APIs to protect against common risks:
 

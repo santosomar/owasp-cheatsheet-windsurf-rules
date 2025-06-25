@@ -5,7 +5,7 @@ globs: [html, js, php, asp, aspx, jsp, nginx, apache, conf, config, json, yml, y
 
 Ensure your web application sets critical HTTP security headers to protect against XSS, clickjacking, MIME sniffing, information disclosure,
 and enforce secure communication as recommended by OWASP. Use CSP as primary defense and combine with additional headers for robust protection.
-severity: high
+
 tags: [security, http-headers, csp, clickjacking, cors, hsts, x-content-type-options, permissions-policy]
 
 patterns:

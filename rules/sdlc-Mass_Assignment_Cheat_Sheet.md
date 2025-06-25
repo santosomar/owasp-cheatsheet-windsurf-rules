@@ -1,11 +1,10 @@
-```yaml
 ---
 trigger: glob
 globs: [java, js, rb, php, cs, groovy, scala]
 ---
 
 rule: Mass Assignment Protection
-message: |
+
   Mass Assignment vulnerabilities occur when untrusted input can overwrite unintended object fields, especially sensitive ones like 'isAdmin'. To prevent exploits:
 
   1. **Never bind user input directly to domain objects with sensitive fields.**
@@ -24,7 +23,7 @@ message: |
 
   For more framework-specific guidance, consult official docs (e.g., Spring, Laravel, Rails). Protecting against mass assignment is critical to avoid unauthorized privilege escalation.
 
-severity: high
+
 patterns:
   - pattern: |
       $OBJ = new $CLASS($INPUT);

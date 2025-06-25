@@ -1,4 +1,3 @@
-```yaml
 ---
 trigger: glob
 globs: [js, ts, java, py, rb, php, go, cs]

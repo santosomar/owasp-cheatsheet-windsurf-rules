@@ -1,17 +1,8 @@
-```yaml
 ---
 trigger: glob
 globs: [js,ts,java,py,go,cs,cpp,rb,php,sh,dockerfile,yml,yaml,env]
 ---
 
-id: secure-product-design
-name: Secure Product Design Best Practices
-description: |
-  Enforce core security principles and practices throughout software design and development to build resilient, secure products aligned with organizational standards.
-severity: high
-tags: [security, secure_design, owasp]
-
-message: |
   Follow these secure product design guidelines:
 
   1. Apply core security principles:
@@ -50,7 +41,3 @@ message: |
      - Use trusted base images for containers and keep them updated.
      - Establish and regularly rehearse incident response plans.
 
-  Adopt these principles from design to deployment to build secure, resilient products.
-
-# Note: This rule is a reminder and checklist for developers and reviewers to embed security from start to finish.
-```
