@@ -1,59 +1,96 @@
-```yaml
 ---
 trigger: glob
-globs: [html, htm, js, jsp, php, asp, aspx, css]
+globs: .html, .htm, .js, .jsp, .php, .asp, .aspx, .css
 ---
 
-rule:
-  id: OWASP-Clickjacking-Defense
-  message: |
-    Ensure robust clickjacking protection by configuring HTTP headers, cookies, and scripts properly.
-  severity: high
-  languages: [html, javascript, php, asp, aspnet, css]
+## Protecting Your Web Application Against Clickjacking
 
-tests:
-  - pattern-either:
-      - pattern: 'Content-Security-Policy:.*frame-ancestors'
-      - pattern: 'X-Frame-Options:\s*(DENY|SAMEORIGIN)'
-  - pattern-not: 'X-Frame-Options:\s*ALLOW-FROM'
+As a software engineer, you need to understand that clickjacking (UI redress attacks) can trick your users into performing unintended actions by hiding or disguising interactive elements. These attacks embed your site in an invisible iframe, allowing attackers to capture clicks meant for their site and redirect them to your application.
 
-description: |
-  Clickjacking attacks trick users into interacting with hidden or embedded pages.  
-  **To protect your site:**
+### Defense Strategy: Multiple Layers of Protection
 
-  1. **Set framing protection headers on every HTML response:**
-     - Prefer `Content-Security-Policy` header using `frame-ancestors` directive with value `'none'` to block all framing.
-     - If CSP is not supported, fallback to `X-Frame-Options` header with `DENY` (preferred) or `SAMEORIGIN`.
-     - **Do NOT use** `ALLOW-FROM` as it is obsolete and unsupported by modern browsers.
-  
-  2. **Mark sensitive session cookies with `SameSite=Lax` or `SameSite=Strict`:**  
-     This prevents cookies from being sent in cross-origin frames and mitigates authenticated clickjacking.
+#### 1. HTTP Headers: Your First Line of Defense
 
-  3. **Implement the recommended anti-clickjacking JavaScript frame-buster snippet inside `<head>` for legacy browser support:**
-      ```html
-      <style id="antiClickjack">body{display:none !important;}</style>
-      <script>
-        if (self === top) {
-          document.getElementById("antiClickjack").remove();
-        } else {
-          top.location = self.location;
-        }
-      </script>
-      ```
-     Avoid fragile scripts that can be bypassed, such as `if(top != self) top.location = self.location;`.
+**Content Security Policy (CSP)** is the modern, recommended approach:
 
-  4. **If your site must be framed, carefully whitelist trusted domains in `frame-ancestors` and enforce user confirmation (e.g. `window.confirm()`) before sensitive actions.**
-
-  5. **Apply these protections globally on all relevant responses to ensure consistent defense.**
-
-  Combining these layers offers the strongest protection against clickjacking attacks and helps safeguard user interactions.
-
-recommendation: |
-  - Always configure CSP `frame-ancestors 'none'` header unless framing is required.
-  - Use `X-Frame-Options: DENY` as fallback; never use `ALLOW-FROM`.
-  - Set session cookies with `SameSite=Lax` or `Strict`.
-  - Add the approved anti-clickjacking JS snippet for legacy browser coverage.
-  - Avoid simplistic JS frame busters that attackers can bypass.
-  - Employ confirmation dialogs for framed sensitive operations.
-  - Test headers and scripts under proxies and across browsers to ensure enforcement.
+```http
+Content-Security-Policy: frame-ancestors 'none';
 ```
+
+This directive prevents any site from framing your content. If you need to allow specific sites to frame your content, use:
+
+```http
+Content-Security-Policy: frame-ancestors 'self' https://trusted-site.com;
+```
+
+For older browsers that don't support CSP, implement the **X-Frame-Options** header as a fallback:
+
+```http
+X-Frame-Options: DENY
+```
+
+or
+
+```http
+X-Frame-Options: SAMEORIGIN
+```
+
+**Important:** Never use `X-Frame-Options: ALLOW-FROM` as it's obsolete and not supported by modern browsers.
+
+#### 2. Cookie Protection
+
+Protect your session cookies from being included in cross-origin requests:
+
+```http
+Set-Cookie: sessionid=abc123; SameSite=Lax; Secure; HttpOnly
+```
+
+Options for the SameSite attribute:
+- `Strict`: Cookies are only sent in first-party context (most secure)
+- `Lax`: Cookies are sent when navigating to your site from another site (good balance)
+
+#### 3. JavaScript Frame-Buster
+
+For legacy browsers or as an additional layer, implement this defensive code in your page's `<head>` section:
+
+```html
+<style id="antiClickjack">body{display:none !important;}</style>
+<script>
+  if (self === top) {
+    // Not framed, remove the style that hides content
+    document.getElementById("antiClickjack").remove();
+  } else {
+    // Framed, break out of the frame
+    top.location = self.location;
+  }
+</script>
+```
+
+This approach first hides the page content, then only reveals it if the page is not framed. If framed, it attempts to break out of the frame.
+
+#### 4. Special Cases: When Your Site Must Be Framed
+
+If your application legitimately needs to be framed (e.g., it's designed to be embedded):
+
+1. Use CSP to whitelist only specific domains:
+   ```http
+   Content-Security-Policy: frame-ancestors 'self' https://trusted-partner.com;
+   ```
+
+2. Implement additional confirmation for sensitive actions:
+   ```javascript
+   if (sensitiveAction && window !== window.top) {
+     if (!window.confirm('Confirm this action?')) {
+       return false; // Cancel the action if not confirmed
+     }
+   }
+   ```
+
+### Implementation Best Practices
+
+1. **Apply Globally:** Add these protections to all pages, not just sensitive ones.
+2. **Test Thoroughly:** Verify your defenses work across different browsers and with proxies.
+3. **Defense in Depth:** Combine all three protection methods for maximum security.
+4. **Verify Implementation:** Use tools like the OWASP ZAP scanner to confirm your headers are properly set.
+
+By implementing these defenses, you significantly reduce the risk of clickjacking attacks against your web application.

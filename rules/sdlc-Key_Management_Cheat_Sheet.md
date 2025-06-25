@@ -2,7 +2,7 @@
 trigger: glob
 globs: [js, ts, java, py, cs, go, cpp, c, rb, swift, kt]
 ---
-Key Management: Ensure strong, secure handling of cryptographic keys per OWASP guidelines.
+Ensure strong, secure handling of cryptographic keys per OWASP guidelines.
   - Define security objectives before selecting algorithms and key types.
   - Use only approved, strong algorithms and key lengths (NIST SP 800-57 / quantum-resistant if possible).
   - Separate keys by purpose; NEVER reuse the same key for encryption, signing, or authentication.
@@ -39,4 +39,4 @@ tags: [security, cryptography, key-management, best-practices]
 12. Control and harden trust stores rigorously to prevent unauthorized changes.
 13. Use only vetted cryptographic libraries; avoid custom crypto code.
 
-# Ensure your code and infrastructure follow these key management principles to protect sensitive data and maintain cryptographic integrity.
+Ensure your code and infrastructure follow these key management principles to protect sensitive data and maintain cryptographic integrity.

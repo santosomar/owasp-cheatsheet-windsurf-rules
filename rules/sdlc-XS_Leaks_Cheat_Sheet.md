@@ -1,69 +1,263 @@
-```yaml
 ---
 trigger: glob
-globs: [js, ts, jsx, tsx, html, http, conf, env]
+globs: .js, .ts, .jsx, .tsx, .html, .http, .conf, .env
 ---
 
-id: xs-leaks-best-practices
-title: Prevent Cross-Site Leaks (XS-Leaks)
-description: |
-  Cross-Site Leaks exploit subtle browser behaviors to infer sensitive user data. Follow these best practices to protect your web app.
+## Preventing Cross-Site Leaks (XS-Leaks)
 
-tags: security, xs-leaks, privacy, cookies, headers, cross-origin
+As a web developer, protecting your applications from Cross-Site Leaks is crucial for safeguarding user privacy. XS-Leaks are a class of vulnerabilities that exploit subtle browser behaviors to extract sensitive user information across origins. This guide covers practical defenses you can implement to protect your web applications.
 
-rule: |
-  1. **Set cookies securely:**
-     - Always specify a `SameSite` attribute (`Strict` or `Lax`) on cookies to restrict cross-site sending.
-     - Use `SameSite=None; Secure` only if third-party cross-site usage is required and HTTPS is enforced.
-     - Avoid relying on defaults; explicitly set `SameSite` to prevent unexpected behavior.
+### Understanding XS-Leaks
 
-  2. **Protect against framing attacks:**
-     - Implement `Content-Security-Policy: frame-ancestors` to whitelist allowed framing origins.
-     - As fallback or complement, set `X-Frame-Options` (`DENY` or `SAMEORIGIN`) headers.
-     - Validate and handle the Fetch Metadata header `Sec-Fetch-Dest` to block unauthorized iframe embedding.
+XS-Leaks occur when an attacker's website can infer information about a user's state on another website through side-channels like:
 
-  3. **Secure sensitive endpoints:**
-     - Use long, unpredictable per-user tokens in URLs or request parameters instead of guessable IDs.
-     - Leverage `Sec-Fetch-Site` header to deny or restrict cross-site requests on sensitive APIs.
-     - Apply `Cross-Origin-Resource-Policy (CORP)` headers (`same-origin` or `same-site`) to restrict resource sharing.
+- Error messages
+- Frame counting
+- Resource timing
+- Cache probing
+- Response size detection
 
-  4. **Use strict `postMessage` origins:**
-     - Never use `"*"` as `targetOrigin` in `window.postMessage()`; always specify the exact origin string.
+These attacks can reveal sensitive information such as whether a user is logged in, specific account details, or even extract data from cross-origin resources.
 
-  5. **Mitigate frame counting attacks:**
-     - Set `Cross-Origin-Opener-Policy` (e.g., `same-origin`) headers to isolate browsing contexts and prevent cross-origin access to `window.frames`.
+### Secure Cookie Configuration
 
-  6. **Manage caching to prevent timing leaks:**
-     - Include unpredictable per-user tokens in cacheable resource URLs to avoid attackers verifying cached content presence.
-     - When possible, disable caching on sensitive resources via `Cache-Control: no-store` headers, balancing security and performance.
+Properly configured cookies are your first line of defense against XS-Leaks:
 
-  7. **Adopt Fetch Metadata headers broadly:**
-     - Use headers like `Sec-Fetch-Site`, `Sec-Fetch-Dest`, and `Sec-Fetch-Mode` to build policies that block unwanted cross-site requests.
-     - Provide fallbacks for browsers that do not support Fetch Metadata.
-
-  **Summary:**
-  - Explicitly set `SameSite` on cookies.
-  - Restrict framing via CSP frame-ancestors or X-Frame-Options.
-  - Enforce Fetch Metadata headers on sensitive endpoints.
-  - Never use `"*"` in `postMessage`.
-  - Apply COOP headers for origin isolation.
-  - Use tokens or disable caching on sensitive cached resources.
-  - Continuously test and update based on browser support.
-
-failure_message: |
-  Your code or configuration is missing essential XS-Leak defenses:
-  - Cookies lack explicit SameSite attribute.
-  - No framing restrictions present.
-  - Sensitive endpoints do not check Fetch Metadata headers or use unique tokens.
-  - postMessage uses "*" as targetOrigin.
-  - No COOP to isolate browsing contexts.
-  - Sensitive cached resources lack protection.
-
-fix_suggestion: |
-  Review and update cookie settings to include SameSite.
-  Implement CSP frame-ancestors or X-Frame-Options headers.
-  Add server-side validation of Fetch Metadata headers on critical endpoints.
-  Specify exact origin in all postMessage calls.
-  Enable COOP headers (`same-origin`) for isolation.
-  Add per-user tokens or disable caching on sensitive resources.
+```javascript
+// Setting cookies in JavaScript with secure attributes
+document.cookie = "sessionId=abc123; SameSite=Strict; Secure; HttpOnly; Path=/";
 ```
+
+For server-side cookie setting (example in Express.js):
+
+```javascript
+app.use(session({
+  secret: 'your-secret-key',
+  cookie: {
+    sameSite: 'strict',  // Options: strict, lax, none
+    secure: true,         // Requires HTTPS
+    httpOnly: true        // Prevents JavaScript access
+  }
+}));
+```
+
+In your HTTP response headers:
+
+```http
+Set-Cookie: sessionId=abc123; SameSite=Strict; Secure; HttpOnly; Path=/
+```
+
+**Best practices:**
+
+* **Always specify a `SameSite` attribute:**
+  * Use `SameSite=Strict` for cookies related to sensitive actions
+  * Use `SameSite=Lax` for cookies needed on normal navigation to your site
+  * Use `SameSite=None; Secure` only when third-party usage is absolutely required
+
+* **Never rely on browser defaults** as they may vary across browsers and versions
+
+### Framing Protection
+
+Prevent your site from being framed by potentially malicious sites:
+
+```javascript
+// In your Express.js application
+app.use((req, res, next) => {
+  // CSP frame-ancestors directive (modern approach)
+  res.setHeader(
+    'Content-Security-Policy',
+    "frame-ancestors 'self' https://trusted-parent.com"
+  );
+  
+  // X-Frame-Options (legacy fallback)
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  
+  next();
+});
+```
+
+In your Nginx configuration:
+
+```nginx
+server {
+  # Other configuration...
+  
+  add_header Content-Security-Policy "frame-ancestors 'self'" always;
+  add_header X-Frame-Options "SAMEORIGIN" always;
+}
+```
+
+### Validating Cross-Origin Requests
+
+Use Fetch Metadata headers to detect and block suspicious cross-origin requests:
+
+```javascript
+// Express.js middleware for protecting sensitive endpoints
+function secureEndpoint(req, res, next) {
+  // Get Fetch Metadata headers
+  const fetchSite = req.get('Sec-Fetch-Site') || 'unknown';
+  const fetchMode = req.get('Sec-Fetch-Mode') || 'unknown';
+  const fetchDest = req.get('Sec-Fetch-Dest') || 'unknown';
+  
+  // Block cross-site requests to sensitive endpoints
+  if (fetchSite === 'cross-site' && req.path.startsWith('/api/sensitive')) {
+    return res.status(403).send('Cross-site requests not allowed');
+  }
+  
+  // Block embedding in iframes from untrusted sites
+  if (fetchDest === 'iframe' && fetchSite === 'cross-site') {
+    return res.status(403).send('Embedding not allowed');
+  }
+  
+  next();
+}
+
+app.use(secureEndpoint);
+```
+
+### Secure Cross-Origin Communication
+
+When using `postMessage` for cross-origin communication:
+
+```javascript
+// UNSAFE - Never do this
+window.postMessage(sensitiveData, '*');
+
+// SAFE - Always specify the exact target origin
+window.postMessage(sensitiveData, 'https://trusted-receiver.com');
+
+// When receiving messages, always verify the origin
+window.addEventListener('message', (event) => {
+  // Always verify message origin
+  if (event.origin !== 'https://trusted-sender.com') {
+    console.error('Received message from untrusted origin:', event.origin);
+    return;
+  }
+  
+  // Process the message
+  processMessage(event.data);
+});
+```
+
+### Isolating Browsing Contexts
+
+Use Cross-Origin-Opener-Policy (COOP) to isolate your site from potential attackers:
+
+```http
+Cross-Origin-Opener-Policy: same-origin
+```
+
+In Express.js:
+
+```javascript
+app.use((req, res, next) => {
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+  next();
+});
+```
+
+For maximum isolation, combine with Cross-Origin-Embedder-Policy (COEP):
+
+```javascript
+app.use((req, res, next) => {
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+  res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
+  next();
+});
+```
+
+### Preventing Cache-Based Leaks
+
+Protect sensitive resources from cache probing attacks:
+
+```javascript
+// Express.js middleware for sensitive endpoints
+app.get('/api/sensitive-data', (req, res) => {
+  // Add user-specific token to prevent cache probing
+  const userToken = req.user.securityToken;
+  
+  // Disable caching for sensitive resources
+  res.setHeader('Cache-Control', 'no-store');
+  res.setHeader('Pragma', 'no-cache');
+  
+  // Add user token to response to ensure uniqueness
+  const data = { userToken, sensitiveData: 'secret information' };
+  res.json(data);
+});
+```
+
+For static resources that might reveal user state:
+
+```javascript
+// Add user-specific tokens to URLs of sensitive resources
+function getUserSpecificUrl(baseUrl) {
+  const userToken = generateUserToken();
+  return `${baseUrl}?token=${userToken}`;
+}
+
+const profileImageUrl = getUserSpecificUrl('/images/profile.jpg');
+```
+
+### Comprehensive Defense Strategy
+
+Implement these headers for a robust defense against XS-Leaks:
+
+```javascript
+app.use((req, res, next) => {
+  // Framing protection
+  res.setHeader('Content-Security-Policy', "frame-ancestors 'self'");
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  
+  // Resource isolation
+  res.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+  
+  // Cache control for dynamic content
+  if (req.path.startsWith('/api/')) {
+    res.setHeader('Cache-Control', 'no-store');
+  }
+  
+  next();
+});
+```
+
+### Testing Your Defenses
+
+Regularly test your application for XS-Leak vulnerabilities:
+
+1. Use browser developer tools to inspect headers on sensitive endpoints
+2. Test cross-origin requests to ensure proper blocking
+3. Verify cookie attributes are correctly set
+4. Check that sensitive resources aren't cacheable across origins
+5. Confirm postMessage implementations use explicit origins
+
+### Browser Support Considerations
+
+Some defenses like Fetch Metadata headers aren't supported in all browsers. Implement defense in depth:
+
+```javascript
+function secureEndpoint(req, res, next) {
+  const fetchSite = req.get('Sec-Fetch-Site');
+  
+  // Primary defense: Use Fetch Metadata if available
+  if (fetchSite && fetchSite === 'cross-site') {
+    return res.status(403).send('Cross-site request blocked');
+  }
+  
+  // Fallback: Check Origin/Referer headers
+  const origin = req.get('Origin') || req.get('Referer') || '';
+  if (origin && !isAllowedOrigin(origin)) {
+    return res.status(403).send('Origin not allowed');
+  }
+  
+  // Additional checks for sensitive operations
+  if (req.path.includes('/sensitive') && !req.cookies.csrfToken) {
+    return res.status(403).send('Missing CSRF token');
+  }
+  
+  next();
+}
+```
+
+By implementing these defenses, you'll significantly reduce the risk of XS-Leaks in your web applications, protecting your users' sensitive information from cross-origin attacks.
+

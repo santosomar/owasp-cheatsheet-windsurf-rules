@@ -1,11 +1,10 @@
-```yaml
 ---
 trigger: glob
 globs: [package.json, npmrc, yarn.lock]
 ---
 
 rule: npm_security_best_practices
-message: |
+
   Ensure npm package security by following these best practices:
 
   1. Never publish secrets (API keys, passwords). Use `.gitignore` and `.npmignore` properly; prefer the `files` whitelist in package.json. Always run `npm publish --dry-run` before publishing.
@@ -22,5 +21,3 @@ message: |
   9. Follow responsible vulnerability disclosure practices by coordinating privately before public disclosure.
 
   Adhering to these guidelines helps secure your npm packages, dependencies, and development environment.
-severity: warning
-```

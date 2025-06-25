@@ -1,62 +1,138 @@
-```yaml
 ---
 trigger: glob
-globs: [js,ts,jsx,tsx,html,java,cs,php,py,rb,go]
----
-id: csrf-protection-best-practices
-message: "CSRF Protection: Follow secure patterns to prevent Cross-Site Request Forgery attacks."
-languages: [javascript,typescript,java,csharp,php,python,ruby,go,html]
-severity: warning
+globs: .js, .ts, .jsx, .tsx, .html, .java, .cs, .php, .py, .rb, .go
 ---
 
-# CSRF Protection - Essential Developer Guidance
+## Preventing Cross-Site Request Forgery (CSRF) Attacks
 
-1. **Fix XSS First:**  
-   Ensure all Cross-Site Scripting vulnerabilities are resolved before or alongside CSRF mitigation, as XSS can bypass CSRF defenses.
+As a software engineer, protecting your web applications from CSRF attacks is essential. These attacks trick users into making unwanted actions on a site where they're already authenticated. Here's how to implement robust CSRF defenses.
 
-2. **Use Built-in Framework Protections:**  
-   Prefer framework-native CSRF protection (e.g., ASP.NET AntiForgery, Spring Security CSRF, Angular HttpClient XSRF) and configure it correctly.
+### Understanding the Threat
 
-3. **Synchronizer Token Pattern:**  
-   - Generate unpredictable, per-session/request CSRF tokens using cryptographically secure methods.  
-   - Embed tokens in HTML forms or frontend meta-tags / JS variables, never in URLs or cookies.  
-   - On every state-changing request (POST, PUT, DELETE, PATCH), validate tokens server-side.
+CSRF attacks exploit the trust a website has in a user's browser. When a user is authenticated to your site, an attacker can trick them into submitting a request to your server without their knowledge or consent.
 
-4. **Avoid Token Transport in Cookies or URLs:**  
-   - Don’t put CSRF tokens in URLs (avoid exposure in logs).  
-   - Don’t rely on naive double-submit cookie patterns; only use the signed double-submit cookie variant with HMAC tied to session and secret keys.
+### Implementation Best Practices
 
-5. **Protect State-Changing Requests:**  
-   - Never use GET for operations changing server state.  
-   - For AJAX/API calls, require and validate a custom header such as `X-CSRF-Token`. Rely on browser enforcing the same-origin policy for these headers.
+#### 1. Fix XSS Vulnerabilities First
 
-6. **Harden Session Cookies:**  
-   - Set `SameSite=Lax` or `SameSite=Strict` on session cookies to reduce CSRF risk.  
-   - Use `Secure` and `HttpOnly` flags appropriately.  
-   - Apply `__Host-` prefix on cookies when possible to prevent subdomain cookie injection.
+Cross-Site Scripting (XSS) vulnerabilities can bypass CSRF protections. Always address XSS issues alongside CSRF mitigations.
 
-7. **Validate Origin and Referer Headers:**  
-   - Server-side check that requests’ `Origin` or `Referer` headers match trusted domains, block or log anomalies.  
-   - Be mindful some legitimate requests may lack these headers; use a risk-based approach.
+#### 2. Leverage Your Framework's Built-in Protection
 
-8. **Client-Side Code Hygiene:**  
-   - Store CSRF tokens outside cookies/localStorage (e.g., `<meta>` tags or JS variables).  
-   - Automatically add CSRF tokens as a custom header on unsafe HTTP methods.  
-   - Prevent attacker input from crafting unauthorized AJAX requests by strict validation and whitelisting of parameters and endpoints.
+Modern frameworks provide robust CSRF protection. Use these native defenses whenever possible:
 
-9. **Login CSRF Mitigation:**  
-   - Use a pre-authentication session with CSRF tokens on login forms.  
-   - Destroy pre-auth session upon successful login to prevent fixation.
+* **React/Next.js**: Use the built-in CSRF protection in Next.js API routes
+* **Angular**: The HttpClient automatically handles CSRF tokens
+* **Spring**: Enable CSRF protection with `csrf().disable(false)`
+* **Django**: Use the `{% csrf_token %}` template tag
+* **ASP.NET Core**: Use the `[ValidateAntiForgeryToken]` attribute
 
-10. **Sensitive Action Protections:**  
-    - Require user interaction like re-authentication or one-time tokens on high-risk operations (money transfers, password changes).  
-    - Avoid CAPTCHAs as a CSRF mitigation method.
+#### 3. Implement the Synchronizer Token Pattern
 
-11. **Thorough Testing:**  
-    - Test against classical CSRF scenarios AND modern client-side, AJAX-based CSRF.  
-    - Validate behavior on legacy browsers and in edge cases.
+This is the most common and effective CSRF defense:
 
----
+```javascript
+// Server-side token generation (Node.js example)
+const crypto = require('crypto');
 
-**Following these guidelines will ensure comprehensive protection against CSRF attacks, safeguarding user sessions and application integrity.**
+function generateCsrfToken(sessionId) {
+  const secret = process.env.CSRF_SECRET;
+  return crypto
+    .createHmac('sha256', secret)
+    .update(sessionId)
+    .digest('hex');
+}
+
+// Include in your HTML
+app.get('/form', (req, res) => {
+  const csrfToken = generateCsrfToken(req.session.id);
+  res.render('form', { csrfToken });
+});
 ```
+
+In your HTML form:
+
+```html
+<form action="/api/action" method="POST">
+  <input type="hidden" name="_csrf" value="{{csrfToken}}">
+  <!-- other form fields -->
+  <button type="submit">Submit</button>
+</form>
+```
+
+For AJAX requests, include the token in a custom header:
+
+```javascript
+fetch('/api/action', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+  },
+  body: JSON.stringify(data)
+});
+```
+
+#### 4. Protect All State-Changing Requests
+
+* **Never use GET for state changes**: All operations that change state should use POST, PUT, DELETE, or PATCH.
+* **Validate tokens on all unsafe methods**: Verify CSRF tokens on every state-changing request.
+
+#### 5. Harden Session Cookies
+
+Set appropriate cookie attributes to reduce CSRF risk:
+
+```http
+Set-Cookie: sessionid=abc123; Path=/; SameSite=Lax; Secure; HttpOnly
+```
+
+* **SameSite=Lax**: Prevents cookies from being sent in cross-site requests except for top-level navigations.
+* **SameSite=Strict**: More secure but can affect user experience; cookies are never sent in cross-site requests.
+* **__Host- prefix**: Use `__Host-sessionid` to prevent subdomain cookie injection.
+
+#### 6. Secondary Defenses
+
+Implement additional layers of protection:
+
+* **Origin/Referer Validation**: Verify that requests come from your domain:
+
+  ```javascript
+  // Server-side validation
+  function validateOrigin(req) {
+    const origin = req.headers.origin || req.headers.referer;
+    return origin && new URL(origin).hostname === 'yourdomain.com';
+  }
+  ```
+
+* **Custom Request Headers**: For AJAX requests, rely on browsers' same-origin policy for custom headers.
+
+#### 7. Special Cases: Login CSRF
+
+Login forms need protection too! Use a pre-session approach:
+
+```javascript
+// Generate a token before login
+app.get('/login', (req, res) => {
+  req.session.loginCsrfToken = crypto.randomBytes(32).toString('hex');
+  res.render('login', { csrfToken: req.session.loginCsrfToken });
+});
+
+// Validate on login attempt
+app.post('/login', (req, res) => {
+  if (req.body.csrf !== req.session.loginCsrfToken) {
+    return res.status(403).send('CSRF validation failed');
+  }
+  // Continue with authentication...
+});
+```
+
+#### 8. Testing Your CSRF Defenses
+
+Verify your protections with these tests:
+
+* Create a test HTML page on a different domain that submits to your endpoints
+* Verify that CSRF tokens are properly validated
+* Test both traditional form submissions and AJAX requests
+* Check behavior with cookies that have different SameSite settings
+
+By implementing these defenses in layers, you'll create a robust protection against CSRF attacks while maintaining a good user experience.

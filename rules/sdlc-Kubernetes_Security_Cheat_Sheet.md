@@ -1,16 +1,12 @@
-```yaml
 ---
 trigger: glob
 globs: [yaml,yml,json,sh,Dockerfile]
 ---
 
-id: K8S-SEC-001
-title: Secure Kubernetes Development & Deployment Best Practices
-severity: high
-description: |
+
+
   Enforce Kubernetes security best practices throughout the container lifecycle to minimize attack surface and mitigate risks. Focus on secure image management, strict RBAC, pod security contexts, network segmentation, secrets protection, runtime monitoring, and cluster component hardening.
 
-tags: [kubernetes, security, container, rbac, network, secrets, runtime, audit, best-practices]
 
 enforce:
   - Build Phase:
@@ -71,4 +67,4 @@ actionable_advice: |
   - Automate credential rotation to minimize exposure window.
   - Use admission controllers like ImagePolicyWebhook and Pod Security Admission to enforce compliance.
   - Monitor and patch Kubernetes components regularly to protect cluster integrity.
-```
+

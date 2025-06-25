@@ -1,11 +1,10 @@
-```yaml
 ---
 trigger: glob
 globs: [xml, wsdl, xsd, soap, java, cs, py, js]
 ---
 
-id: secure-web-service-communication
-message: >-
+
+-
   Ensure your web services follow OWASP best practices for secure communication and processing.
   Enforce strong TLS transport security, strict server authentication, and robust user authentication.
   Validate all XML inputs against schemas to prevent injection and XML-based attacks.
@@ -15,34 +14,18 @@ message: >-
   Scan all file attachments for viruses before storage.
   Comply with WS-I Basic Profile for interoperability and security baseline.
   Enable XML parser protections against recursive payloads, entity expansion, and malformed XML.
-help: |
-  ⦿ Always configure TLS properly for ALL web service communications.
-  ⦿ Validate server certificates strictly: trusted CA, expiry, revocation, domain match.
-  ⦿ Use Mutual TLS or strong authentication schemes; avoid Basic Auth without TLS.
-  ⦿ Enforce strict schema validation (XSD) on incoming XML.
-  ⦿ Sign XML messages digitally to ensure integrity and non-repudiation.
-  ⦿ Encrypt sensitive data beyond transport-level encryption when necessary.
-  ⦿ Apply least privilege for each client operation and separate admin interfaces.
-  ⦿ Limit SOAP message size and parser resource usage to prevent DoS.
-  ⦿ Scan all attachments inline before storage using up-to-date virus definitions.
-  ⦿ Encode outputs properly to prevent XSS if consumed by web clients.
-  ⦿ Follow WS-I Basic Profile compliance for interoperability and security.
-tags:
-  - security
-  - web services
-  - soap
-  - xml
-  - tls
-  - authentication
-  - authorization
-  - input-validation
-  - dos-mitigation
-severity: high
-languages:
-  - java
-  - csharp
-  - python
-  - javascript
+
+  Always configure TLS properly for ALL web service communications.
+  Validate server certificates strictly: trusted CA, expiry, revocation, domain match.
+  Use Mutual TLS or strong authentication schemes; avoid Basic Auth without TLS.
+  Enforce strict schema validation (XSD) on incoming XML.
+  Sign XML messages digitally to ensure integrity and non-repudiation.
+  Encrypt sensitive data beyond transport-level encryption when necessary.
+  Apply least privilege for each client operation and separate admin interfaces.
+  Limit SOAP message size and parser resource usage to prevent DoS.
+  Scan all attachments inline before storage using up-to-date virus definitions.
+  Encode outputs properly to prevent XSS if consumed by web clients.
+  Follow WS-I Basic Profile compliance for interoperability and security.
 
 patterns:
   - pattern: >
@@ -75,4 +58,3 @@ action: |
   - Output encoding is applied if data is rendered in a web client context.
   - WS-I Basic Profile compliance is verified in your web service implementation.
   - XML parsers are configured to detect and reject recursive and oversized payloads, XML bombs, and external entity attacks.
-```

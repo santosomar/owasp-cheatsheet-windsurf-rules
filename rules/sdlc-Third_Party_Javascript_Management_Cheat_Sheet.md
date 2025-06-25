@@ -1,14 +1,12 @@
-```yaml
 ---
 trigger: glob
 globs: [.html,.js,.jsx,.ts,.tsx]
 ---
 
-id: secure-third-party-js
-message: >
+
   Third-party JavaScript tags carry significant risks including arbitrary code execution and data leakage. Follow these best practices to protect your web application and users:
 
-severity: warning
+
 languages: [javascript, typescript, html]
 
 labels:

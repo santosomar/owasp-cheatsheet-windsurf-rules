@@ -1,18 +1,17 @@
-```yaml
 ---
 trigger: glob
 globs: [.js,.ts,.java,.py,.rb,.go,.cs,.php,.swift,.kt,.scala,.cpp,.c,.h]
 ---
-id: owasp-threat-modeling-best-practices
+
 name: OWASP Threat Modeling Best Practices
-description: |
+
   Ensure proactive security by integrating threat modeling early and continuously in your development process.
   Use visual system modeling and systematic threat identification (e.g., STRIDE) to prioritize and mitigate risks effectively.
   Collaborate cross-functionally, document thoroughly, and validate models regularly.
 
 tags: [security, threat modeling, architecture, design, STRIDE, DFD]
 
-severity: INFO
+
 
 patterns:
   - pattern-either:
@@ -29,7 +28,7 @@ patterns:
       - pattern: |
           /* Collaborate with security experts and stakeholders; validate and document threat models */
 
-message: |
+
   ⚠️ Security Best Practice: Threat modeling is essential to build secure systems proactively.
   - Start threat modeling early in design and update it continuously as your system evolves.
   - Clearly model your system using Data Flow Diagrams (DFDs) to understand trust boundaries and data flows.

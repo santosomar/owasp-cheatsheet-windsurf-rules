@@ -1,12 +1,11 @@
-```yaml
 ---
 trigger: glob
 globs: [java, jsp, cs, config, json, xml]
 ---
 
-id: secure-error-handling
+
 message: Secure Error Handling - avoid leaking sensitive details, log errors securely, and return generic error messages.
-severity: warning
+
 languages: [java, csharp, xml, json]
 categories: [security, error-handling, best-practice]
 

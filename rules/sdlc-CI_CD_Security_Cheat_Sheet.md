@@ -1,38 +1,56 @@
-```yaml
 ---
 trigger: glob
-globs: [yaml,yml,json,groovy,sh,ps1,tf,dockerfile,gradle,xml,ini]
+globs: .yml, .yaml, .json, .groovy, .sh, .ps1, .tf, Dockerfile, .gradle, .xml
 ---
 
-rule: "Secure Your CI/CD Pipeline and Supply Chain"
+As a software engineer, the CI/CD pipeline is the backbone of your development process. It's also a high-value target for attackers. Securing your pipeline is essential for protecting your code, your infrastructure, and your users.
 
-description: |
-  This rule guides developers on securing CI/CD pipelines following OWASP best practices,
-  reducing risks from pipeline compromise, credential abuse, and supply chain attacks.
+### 1. Secure Your Source Code
 
-recommendations:
-  - Enforce strict code reviews and disable auto-merge in SCM; enable protected branches,
-    commit signing, and MFA to prevent unauthorized changes.
-  - Integrate automated scanning (SAST, DAST, IaC security tools) in your pipeline configuration
-    to detect vulnerabilities early.
-  - Never hardcode secrets or credentials in code or pipeline config files; use dedicated
-    secret management solutions and ensure secrets are encrypted and never logged.
-  - Apply the principle of least privilege to all pipeline identities, agents, and secrets,
-    avoiding shared credentials and granting minimal permissions needed.
-  - Pin all dependencies with version locks and validate package integrity using hashes or checksums.
-    Prefer private registries and scoped packages to prevent dependency confusion.
-  - Vet and restrict third-party plugins and extensions in your CI/CD platform; keep them updated
-    and remove those unused to reduce attack surface.
-  - Sign commits, artifacts, and pipeline configurations using code signing tools (e.g., Sigstore)
-    and consider frameworks like in-toto or SLSA for supply chain integrity.
-  - Centralize and structure pipeline logs (e.g., JSON format), avoid logging sensitive data,
-    and set up monitoring and alerting to detect anomalies quickly.
-  - Restrict network access to CI/CD servers and isolate build environments to limit attacker movement.
-  - Maintain up-to-date access inventories, use centralized identity providers, enforce MFA,
-    and promptly deprovision unused accounts or excessive privileges.
+The pipeline starts with your source code repository.
 
-rationale: |
-  CI/CD pipelines are a high-value target due to their elevated privileges and
-  influence over software delivery. Following these actions limits attack vectors,
-  ensures integrity and accountability, and secures the continuous delivery process.
-```
+*   **Protected Branches:** Configure protected branches (e.g., `main`, `develop`) in your SCM (GitHub, GitLab, etc.). Require code reviews and passing status checks before any code can be merged.
+*   **Commit Signing:** Enforce commit signing (e.g., with GPG keys) to verify the author of every commit and prevent spoofing.
+
+### 2. Don't Hardcode Secrets
+
+Never, ever hardcode secrets (API keys, passwords, tokens) in your pipeline configuration files or source code.
+
+*   **Best Practice:** Use a dedicated secrets management solution (like HashiCorp Vault, AWS Secrets Manager, or your CI platform's built-in secret store). Your pipeline should fetch secrets at runtime. Ensure that secrets are masked and never appear in logs.
+
+    **Example (GitHub Actions):**
+    
+    steps:
+      - name: Deploy to production
+        run: ./deploy.sh
+        env:
+          API_KEY: ${{ secrets.PROD_API_KEY }} # Fetches from GitHub's encrypted secrets
+    ```
+
+### 3. Harden Your Pipeline Configuration
+
+*   **Least Privilege:** Grant the minimum level of permissions necessary to your pipeline's identities and build agents. If a job only needs to build code, it shouldn't have deployment credentials.
+*   **Automated Security Scanning:** Integrate security scanning directly into your pipeline. This creates a security gate that prevents vulnerabilities from moving down the line.
+    *   **SAST (Static Analysis):** Scans your source code for vulnerabilities.
+    *   **SCA (Software Composition Analysis):** Scans your dependencies for known vulnerabilities.
+    *   **DAST (Dynamic Analysis):** Scans your running application in a test environment.
+    *   **IaC Scanning:** Scans your Infrastructure-as-Code files (Terraform, CloudFormation) for misconfigurations.
+
+### 4. Secure Your Dependencies
+
+Your software is only as secure as its dependencies.
+
+*   **Pin Versions:** Use a lock file (`package-lock.json`, `yarn.lock`, `Gemfile.lock`) to pin your dependencies to specific, trusted versions. This prevents a malicious package from being automatically pulled in.
+*   **Validate Integrity:** Use package manager features that validate package integrity using hashes or checksums.
+*   **Use Private Registries:** For sensitive internal packages, use a private registry to avoid dependency confusion attacks.
+
+### 5. Sign Everything
+
+To ensure the integrity of your supply chain, cryptographically sign your important assets.
+
+*   **Best Practice:**
+    *   Sign your Git commits.
+    *   Sign your build artifacts (e.g., Docker images, JAR files).
+    *   Consider frameworks like **SLSA (Supply-chain Levels for Software Artifacts)** to create a verifiable chain of custody for your software.
+
+By embedding these practices into your daily workflow, you can build a CI/CD pipeline that is not only fast and efficient but also secure and resilient.

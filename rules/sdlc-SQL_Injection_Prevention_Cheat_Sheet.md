@@ -1,12 +1,10 @@
-```yaml
 ---
 trigger: glob
 globs: [java, cs, sql, py, js, ts, php, rb, go]
 ---
 
-id: sql-injection-prevention
-name: Prevent SQL Injection by Using Safe Query Practices
-description: |
+Prevent SQL Injection by Using Safe Query Practices
+
   Ensure your database access code is protected against SQL injection vulnerabilities by following these best practices.
 details: |
   1. **Use Prepared Statements / Parameterized Queries**  
@@ -40,26 +38,25 @@ recommendation: |
 patterns:
   - pattern: |
       $DB.execute("SELECT * FROM users WHERE name = '" + $input + "'")
-    message: >
+    
       Avoid dynamic SQL concatenation with user input. Use prepared statements or parameterized queries instead to prevent SQL injection.
 
   - pattern: |
       "EXECUTE IMMEDIATE " + $input
-    message: >
+    
       Dynamic SQL inside stored procedures or database commands with user input is unsafe. Use parameterized inputs only.
 
   - pattern: |
       db.query("SELECT * FROM " + $tableName)
-    message: >
+    
       User input in SQL identifiers like table or column names must be checked against a strict allow-list, never inserted directly.
 
   - pattern: |
       escapeSql($input)
-    message: >
+    
       Escaping user input alone is not reliable; prefer parameterized queries.
 
   - pattern: |
       db.connect(user='admin', password=$pass)
-    message: >
+    
       Avoid using admin or elevated privilege accounts for application database access. Use least privilege accounts instead.
-```

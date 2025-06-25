@@ -1,89 +1,175 @@
-```yaml
 ---
 trigger: glob
-globs: [js, jsx, ts, tsx, html]
+globs: .js, .jsx, .ts, .tsx, .html
 ---
 
-id: dom-xss-prevention
-title: Prevent DOM Based XSS - Context-Aware Encoding & Safe DOM Manipulation
-description: |
-  DOM XSS occurs when untrusted data is injected into the browser DOM without correct context-aware encoding 
-  or proper API usage, allowing attacker-controlled scripts to execute. Follow these critical rules to prevent DOM XSS.
+## Preventing DOM-Based Cross-Site Scripting (XSS)
 
-author: OWASP Cheat Sheet adaptation
-severity: high
-tags: [security, xss, dom-xss, encoding, javascript, frontend]
+As a software engineer building web applications, you need to be vigilant about DOM-based XSS vulnerabilities. Unlike traditional XSS, DOM-based XSS occurs entirely on the client-side when your JavaScript code takes data from an untrusted source (like URL parameters) and inserts it into the DOM in an unsafe way.
 
-message: >-
-  Potential DOM XSS vulnerability detected. Ensure untrusted data is properly encoded 
-  based on its DOM context and prefer safe DOM APIs over direct HTML injection.
+### Understanding the Risk
 
-languages: [javascript, typescript]
+DOM-based XSS occurs when:
 
-patterns:
-  # Detect assignment to innerHTML, outerHTML, document.write with untrusted data
-  - pattern-either:
-      - pattern: |
-          $EL.innerHTML = $DATA
-      - pattern: |
-          $EL.outerHTML = $DATA
-      - pattern: |
-          document.write($DATA)
-      - pattern: |
-          document.writeln($DATA)
+1. Your code reads data from a user-controllable source (URL parameters, localStorage, postMessage, etc.)
+2. This data is inserted into a DOM sink without proper sanitization or encoding
+3. The browser interprets the injected data as executable code rather than text
 
-  # Usage of eval-like constructs with variable data
-  - pattern-either:
-      - pattern: |
-          eval($DATA)
-      - pattern: |
-          new Function($DATA)
-      - pattern: |
-          setTimeout($DATA, $TIME)
-        condition: $DATA instanceof String or $DATA contains dynamic variable
+### High-Risk DOM Sinks
 
-  # Event handler attributes assignment as string
-  - pattern: |
-      $EL.setAttribute($ATTR, $DATA)
-    where:
-      $ATTR =~ /^on/i
+Be especially careful when using these JavaScript features with untrusted data:
 
-  # Unsafe direct insertion of untrusted input as object keys (simple heuristic)
-  - pattern: |
-      $OBJ[$DATA] = $VAL
+* `innerHTML`, `outerHTML`, `document.write()`, `document.writeln()`
+* `eval()`, `setTimeout()`, `setInterval()`, `new Function()`
+* `location`, `location.href`, `window.open()`
+* Event handlers like `element.onclick = userControlledValue`
+* `<script>` tag injection
 
-fix: |
-  # Key Recommendations and Fixes:
-  - Never use untrusted input directly as code or markup. Treat it strictly as text.
-  - Replace `innerHTML`, `outerHTML`, `document.write()` assignments with `textContent` or `innerText`:
-      ```js
-      element.textContent = untrustedData; // safe insertion as text
-      ```
-  - When inserting untrusted data into HTML subcontexts (e.g. innerHTML), first encode for HTML, then JavaScript:
-      ```js
-      element.innerHTML = encodeForJavaScript(encodeForHTML(untrustedData));
-      ```
-  - For HTML attribute subcontexts, JavaScript encode only:
-      ```js
-      element.setAttribute('title', encodeForJavaScript(untrustedData));
-      ```
-  - For URL attributes and CSS contexts, apply URL encoding first, then JavaScript encoding.
-  - Avoid injecting untrusted data directly into event handler strings; instead assign functions directly:
-      ```js
-      element.onclick = function() { /* safe code */ };
-      ```
-  - Avoid `eval()`, `new Function()`, and string-based `setTimeout`. Use closures or safe parsing (`JSON.parse`) instead.
-  - Build dynamic interfaces using safe DOM APIs:
-      ```js
-      const el = document.createElement('div');
-      el.textContent = untrustedData;
-      parent.appendChild(el);
-      ```
-  - Validate and whitelist object property keys from untrusted input to prevent prototype pollution or logic bypass.
-  - Use established encoding libraries (e.g., OWASP ESAPI, Java Encoder) for all encoding needs.
-  - Perform server-side encoding on output and complement with client-side DOM-context-specific encoding.
-  - Enable strict mode and sandbox JS environments where possible.
-  - Regularly audit and test your codebase for DOM XSS with static analysis and dynamic tools.
+### Best Practices for Prevention
 
-recommendation: Always apply context-aware encoding and prefer safe DOM APIs to prevent client-side injection.
+#### 1. Use Safe DOM Methods
+
+Prefer safer DOM manipulation methods that treat input as text, not HTML:
+
+```javascript
+// UNSAFE: Can execute injected scripts
+element.innerHTML = userInput;
+
+// SAFE: Treats input as text only
+element.textContent = userInput;
+// or
+element.innerText = userInput;
 ```
+
+When building complex DOM structures, use the DOM API instead of HTML strings:
+
+```javascript
+// SAFE: Building elements with the DOM API
+const div = document.createElement('div');
+const text = document.createTextNode(userInput);
+div.appendChild(text);
+parentElement.appendChild(div);
+```
+
+#### 2. Context-Aware Encoding
+
+If you must insert untrusted data into HTML contexts, use context-specific encoding:
+
+* **HTML Context**: Encode HTML entities
+
+  ```javascript
+  function encodeHTML(str) {
+    return str.replace(/[&<>"']/g, function(match) {
+      return {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      }[match];
+    });
+  }
+  
+  // Usage
+  element.innerHTML = encodeHTML(userInput);
+  ```
+
+* **JavaScript Context**: Encode JavaScript string literals
+
+  ```javascript
+  function encodeForJS(str) {
+    return str
+      .replace(/\\/g, '\\\\')
+      .replace(/'/g, "\\'")  
+      .replace(/"/g, '\\"')
+      .replace(/\n/g, '\\n')
+      .replace(/\r/g, '\\r')
+      .replace(/</g, '\\x3C')
+      .replace(/>/g, '\\x3E');
+  }
+  ```
+
+* **URL Context**: Use `encodeURIComponent()` for URL parameters
+
+  ```javascript
+  const safeUrl = `https://example.com/?q=${encodeURIComponent(userInput)}`;
+  ```
+
+#### 3. Avoid Dangerous JavaScript Functions
+
+Never pass untrusted data to these functions:
+
+```javascript
+// DANGEROUS - Never do this
+eval(userInput);
+new Function(userInput);
+setTimeout(userInput, 100);
+```
+
+Instead, use safer alternatives:
+
+```javascript
+// For JSON parsing, use JSON.parse instead of eval
+try {
+  const data = JSON.parse(userInput);
+} catch (e) {
+  console.error('Invalid JSON');
+}
+
+// For dynamic function execution, use closures
+setTimeout(() => {
+  processUserInput(userInput);
+}, 100);
+```
+
+#### 4. Handle URL Parameters Safely
+
+URL parameters are a common source of DOM XSS attacks:
+
+```javascript
+// UNSAFE: Direct use of location.hash
+const hash = window.location.hash.substring(1);
+document.getElementById('output').innerHTML = hash; // Vulnerable!
+
+// SAFE: Encode and validate
+const hash = window.location.hash.substring(1);
+document.getElementById('output').textContent = hash;
+```
+
+#### 5. Use Modern Frameworks Correctly
+
+Modern frameworks like React, Angular, and Vue have built-in XSS protections, but they can be bypassed if used incorrectly:
+
+```jsx
+// React - UNSAFE when using dangerouslySetInnerHTML
+function UnsafeComponent({ userInput }) {
+  return <div dangerouslySetInnerHTML={{ __html: userInput }} />; // Risky!
+}
+
+// React - SAFE approach
+function SafeComponent({ userInput }) {
+  return <div>{userInput}</div>; // Auto-escaped by React
+}
+```
+
+#### 6. Implement Content Security Policy (CSP)
+
+Add an additional layer of protection with a strong CSP:
+
+```html
+<meta http-equiv="Content-Security-Policy" content="script-src 'self'; object-src 'none'">
+```
+
+#### 7. Validate and Sanitize
+
+When rich HTML input is required (e.g., WYSIWYG editors), use a robust sanitization library:
+
+```javascript
+import DOMPurify from 'dompurify';
+
+// Safely render HTML from untrusted sources
+const cleanHtml = DOMPurify.sanitize(userProvidedHtml);
+document.getElementById('content').innerHTML = cleanHtml;
+```
+
+By applying these defensive coding practices, you can significantly reduce the risk of DOM-based XSS vulnerabilities in your web applications.

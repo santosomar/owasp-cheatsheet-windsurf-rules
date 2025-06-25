@@ -1,4 +1,3 @@
-```yaml
 ---
 trigger: glob
 globs: [tf, tfvars, yml, yaml, json, sh, dockerfile]

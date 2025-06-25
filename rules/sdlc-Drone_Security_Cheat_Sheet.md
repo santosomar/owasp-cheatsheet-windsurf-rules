@@ -1,4 +1,3 @@
-```yaml
 ---
 trigger: glob
 globs: [.c, .cpp, .h, .hpp, .py, .go, .java, .js, .rs, .mavlink, .yaml, .yml]
@@ -6,11 +5,11 @@ globs: [.c, .cpp, .h, .hpp, .py, .go, .java, .js, .rs, .mavlink, .yaml, .yml]
 
 rule: Drone Security Best Practices
 msg: Apply strong security controls for drone communication, authentication, physical security, and monitoring.
-severity: high
+ high
 languages: [c, cpp, python, go, java, javascript, rust]
 author: OWASP Drone Security Cheat Sheet
 
-description: |
+
   Ensuring security in drone software is critical to prevent unauthorized access, data manipulation, and attacks on communication channels.
   Follow these best practices to safeguard drone operations and software components.
 

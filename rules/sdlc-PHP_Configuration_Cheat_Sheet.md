@@ -1,54 +1,226 @@
-```yaml
 ---
 trigger: glob
-globs: [.ini, .php]
+globs: .ini, .php
 ---
 
-id: php-secure-configuration
-name: PHP Secure Configuration Best Practices
-description: Ensure your PHP configuration follows security best practices to harden your PHP environment and reduce attack surface.
-severity: warning
-tags: [php, configuration, security]
+## PHP Secure Configuration Best Practices
 
-pattern-either:
-  - pattern: |
-      expose_php\s*=\s*On
-    message: 'Set expose_php = Off to prevent PHP version disclosure to attackers.'
-    level: warning
-  - pattern-not: |
-      error_reporting\s*=\s*E_ALL
-  - pattern-not: |
-      display_errors\s*=\s*Off
-    message: 'Set display_errors = Off on production servers to avoid leaking sensitive error details.'
-  - pattern-not: |
-      log_errors\s*=\s*On
-  - pattern-not: |
-      error_log\s*=\s*.+
-    message: 'Enable log_errors = On and set error_log to a secure path to capture PHP errors for analysis.'
-  - pattern: |
-      allow_url_fopen\s*=\s*On
-    message: 'Set allow_url_fopen = Off to prevent Remote File Inclusion (RFI) vulnerabilities.'
-  - pattern: |
-      allow_url_include\s*=\s*On
-    message: 'Set allow_url_include = Off to prevent inclusion of remote files.'
-  - pattern: |
-      file_uploads\s*=\s*On
-    message: 'Ensure file_uploads is enabled only if application requires file uploads; disable otherwise.'
-  - pattern-not: |
-      disable_functions\s*=\s*.*
-    message: 'Disable dangerous PHP functions like system, exec, shell_exec, passthru, and others not used by your app.'
-  - pattern-not: |
-      session.use_strict_mode\s*=\s*1
-    message: 'Enable session.use_strict_mode = 1 to prevent session fixation attacks.'
-  - pattern-not: |
-      session.cookie_secure\s*=\s*1
-    message: 'Set session.cookie_secure = 1 to ensure cookies are sent only over HTTPS.'
-  - pattern-not: |
-      session.cookie_httponly\s*=\s*1
-    message: 'Set session.cookie_httponly = 1 to prevent JavaScript access to session cookies.'
-  - pattern-not: |
-      session.cookie_samesite\s*=\s*(Strict|Lax)
-    message: 'Set session.cookie_samesite = Strict or Lax to mitigate CSRF attacks.'
+As a software engineer working with PHP applications, properly configuring your PHP environment is crucial for security. This guide covers essential PHP configuration settings that should be implemented to harden your applications against common vulnerabilities.
+
+### Basic Security Settings
+
+#### Hide PHP Information
+
+Prevent attackers from gathering information about your PHP version and configuration:
+
+```ini
+; Disable PHP version exposure in HTTP headers and error messages
+expose_php = Off
+```
+
+#### Error Handling
+
+Configure proper error handling to prevent information disclosure while ensuring errors are logged:
+
+```ini
+; Report all errors in development
+error_reporting = E_ALL
+
+; Hide errors from end users in production
+display_errors = Off
+
+; Enable error logging
+log_errors = On
+
+; Set a secure path for error logs (outside web root)
+error_log = /var/log/php/error.log
+```
+
+In your application code, consider implementing environment-specific error handling:
+
+```php
+// In development environment
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+// In production environment
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
+ini_set('error_log', '/var/log/php/app_errors.log');
+```
+
+### Remote File Access
+
+Restrict PHP's ability to access remote files to prevent Remote File Inclusion (RFI) attacks:
+
+```ini
+; Disable ability to open remote files
+allow_url_fopen = Off
+
+; Disable remote file inclusion
+allow_url_include = Off
+```
+
+### File Upload Security
+
+Manage file upload capabilities based on application requirements:
+
+```ini
+; Enable only if your application needs file uploads
+file_uploads = On
+
+; Limit upload size
+upload_max_filesize = 2M
+post_max_size = 8M
+
+; Specify temporary upload directory (outside web root)
+upload_tmp_dir = /var/php/uploads_tmp
+```
+
+When handling file uploads in your application, always implement additional validation:
+
+```php
+// Example of secure file upload handling
+function secureFileUpload($file) {
+    // Validate file type
+    $allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+    if (!in_array($file['type'], $allowedTypes)) {
+        return false;
+    }
+    
+    // Generate safe filename
+    $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
+    $safeFilename = bin2hex(random_bytes(16)) . '.' . $extension;
+    
+    // Move to secure location outside web root
+    $uploadPath = '/var/www/uploads/' . $safeFilename;
+    
+    return move_uploaded_file($file['tmp_name'], $uploadPath) ? $safeFilename : false;
+}
+```
+
+### Disable Dangerous Functions
+
+Restrict potentially dangerous PHP functions that could be exploited for remote code execution:
+
+```ini
+; Disable functions that can execute system commands
+disable_functions = exec,passthru,shell_exec,system,proc_open,popen,curl_exec,curl_multi_exec,parse_ini_file,show_source,eval,assert
+```
+
+For applications requiring specific functions from this list, carefully review and only enable what's absolutely necessary.
+
+### Session Security
+
+Implement secure session handling to protect against session-based attacks:
+
+```ini
+; Prevent session fixation
+session.use_strict_mode = 1
+
+; Use cookies for session management (not URL parameters)
+session.use_only_cookies = 1
+
+; Secure cookie settings
+session.cookie_secure = 1      ; Only send cookies over HTTPS
+session.cookie_httponly = 1    ; Prevent JavaScript access to cookies
+session.cookie_samesite = Strict  ; Mitigate CSRF attacks
+
+; Set appropriate session lifetime
+session.gc_maxlifetime = 3600  ; Session timeout (seconds)
+```
+
+Implement additional session security in your application code:
+
+```php
+// Regenerate session ID periodically
+function secureSession() {
+    if (!isset($_SESSION['last_regeneration'])) {
+        regenerateSession();
+    } else if ($_SESSION['last_regeneration'] < (time() - 1800)) {
+        // Regenerate session ID every 30 minutes
+        regenerateSession();
+    }
+}
+
+function regenerateSession() {
+    // Save current session data
+    $sessionData = $_SESSION;
+    
+    // Clear session and generate new ID
+    session_destroy();
+    session_start();
+    session_regenerate_id(true);
+    
+    // Restore session data
+    $_SESSION = $sessionData;
+    $_SESSION['last_regeneration'] = time();
+}
+```
+
+### Open_basedir Restriction
+
+Limit PHP's file system access to specific directories:
+
+```ini
+; Restrict PHP file operations to specific directories
+open_basedir = /var/www/html:/var/php/uploads:/tmp
+```
+
+### Memory and Execution Limits
+
+Set appropriate resource limits to prevent DoS attacks:
+
+```ini
+; Memory limit per script
+memory_limit = 128M
+
+; Maximum execution time for scripts (seconds)
+max_execution_time = 30
+
+; Maximum time for input processing
+max_input_time = 60
+
+; Limit POST data size
+post_max_size = 8M
+```
+
+### Additional Security Measures
+
+#### Content Security Policy
+
+Implement Content Security Policy headers in your application:
+
+```php
+// Set CSP header
+header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';");
+```
+
+#### Environment-Specific Configuration
+
+Use different PHP configuration files for development and production environments:
+
+```bash
+# Development php.ini settings
+php_admin_value[display_errors] = On
+php_admin_value[error_reporting] = E_ALL
+
+# Production php.ini settings
+php_admin_value[display_errors] = Off
+php_admin_value[error_reporting] = E_ALL & ~E_DEPRECATED & ~E_STRICT
+```
+
+#### Regular Security Audits
+
+Regularly audit your PHP configuration using security scanning tools:
+
+```bash
+# Example command to check PHP configuration
+php -i | grep -E "expose_php|allow_url|disable_functions|open_basedir"
+```
+
+By implementing these security best practices in your PHP configuration, you'll significantly reduce the attack surface of your PHP applications and protect against common vulnerabilities.
   - pattern-not: |
       session.name\s*=\s*myPHPSESSID
     message: 'Change the default session.name to a custom value to hinder session guessing.'
@@ -86,10 +258,3 @@ recommendation: |
   - Disable dynamic function loading (`enable_dl`).
   - Use secure paths for sessions and uploads.
   Additionally, consider deploying Snuffleupagus for advanced PHP protection.
-
-resources:
-  - https://www.php.net/manual/en/ini.core.php
-  - https://paragonie.com/blog/2017/12/2018-guide-building-secure-php-software
-  - https://www.acunetix.com/blog/articles/local-file-inclusion-lfi/
-  - https://snuffleupagus.readthedocs.io/en/latest/
-```

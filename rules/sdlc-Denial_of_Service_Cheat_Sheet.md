@@ -1,17 +1,15 @@
-```yaml
 ---
 trigger: glob
 globs: [js, ts, java, py, rb, php, go, cs, scala, swift]
 ---
 
-rule: Denial of Service (DoS) Resilience and Mitigation
-message: >
+Denial of Service (DoS) Resilience and Mitigation
+
   Implement layered DoS defenses by validating inputs early, avoiding expensive operations,
   managing sessions efficiently, and applying rate limits to protect application resources.
   Collaborate with infrastructure teams to ensure network-level redundancies and filtering.
 
-severity: warning
-confidence: high
+
 
 patterns:
   - pattern-either:
@@ -25,7 +23,7 @@ patterns:
       - pattern-regex: '(rate|limit|timeout|bandwidth)'
       - pattern-regex: 'try\s*{.*}\s*catch\s*\(.*\)\s*{.*}'
 
-fix: |
+
   // Follow these best practices to mitigate DoS risks:
   1. Validate inputs using cheap resource checks before costly processing to avoid early resource exhaustion.
   2. Use asynchronous, non-blocking operations for tasks that may take long execution times.
@@ -36,9 +34,3 @@ fix: |
   7. Apply rate limiting (requests per user/IP, bandwidth, connection timeouts) to throttle abusive traffic.
   8. Collaborate with network/infrastructure to implement caching, redundant links, and ISP-level filtering.
   9. For large-scale attacks, consider cloud or commercial DDoS mitigation services compliant with data protection laws.
-
-notes: |
-  - Remember CAPTCHAs are useful to prevent abuse but are not effective DoS defense mechanisms.
-  - Effective DoS protection requires combining application, session, and network layer controls.
-  - Maintain an up-to-date inventory of all components to identify and address bottlenecks or single points of failure.
-```

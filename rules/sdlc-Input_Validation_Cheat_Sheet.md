@@ -1,4 +1,3 @@
-```yaml
 ---
 trigger: glob
 globs: [js, ts, java, py, rb, php, cs, go, json, xml, html, css]
@@ -6,7 +5,7 @@ globs: [js, ts, java, py, rb, php, cs, go, json, xml, html, css]
 
 rule: Input Validation Best Practices (OWASP Cheat Sheet)
 
-description: |
+
   Ensures developers validate all untrusted input early and robustly to prevent injection and other attacks.
   Highlights the use of allowlist validation, syntactic and semantic checks, server-side enforcement,
   safe file upload handling, and email validation best practices.

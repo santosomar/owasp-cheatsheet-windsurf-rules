@@ -1,48 +1,84 @@
-```yaml
 ---
 trigger: glob
-globs: [js, jsx, ts, tsx, java, py, cs, php]
+globs: .js, .jsx, .ts, .tsx, .java, .py, .cs, .php
 ---
 
-  Follow AJAX security best practices to prevent common web vulnerabilities.
+As a software engineer, it's crucial to follow AJAX security best practices to prevent common web vulnerabilities. Here are some guidelines to keep in mind:
 
+### 1. Avoid Dangerous JavaScript Functions
 
-1. Avoid dangerous JavaScript functions that evaluate code dynamically.
-2. Detect usage of eval, new Function, setTimeout or setInterval with string argument.
-  (eval\()|(new\s+Function\()|(setTimeout\s*\(\s*['"`])|(setInterval\s*\(\s*['"`])
+Dynamically evaluating code with functions like `eval()`, `new Function()`, `setTimeout()`, and `setInterval()` with string arguments is a significant security risk. It can lead to code injection vulnerabilities.
 
-3. Detect usage of innerHTML assignments.
-  |innerHTML\s*=
+**Best Practice:**
 
-4. Detect calls transmitting secrets or encryption done on client side.
-  #(This requires context; flag common keywords only)
-  |(encrypt|decrypt|secret|privateKey|password).*
+Instead of using these functions with dynamic strings, use safer alternatives. For example, use anonymous functions for `setTimeout` and `setInterval`.
 
-5. Detect building JSON or XML by string concatenation (rough heuristic).
-  #    The pattern looks for + operators near quotes or object literals.
-  |(["']\s*\+\s*[^\s]+)|(>\s*\+\s*["'])|(\+\s*\{)|(\}\s*\+)
+**Example of what to avoid:**
 
-6. Detect client side security or business logic comments or suspicious conditionals (heuristic).
-  #    We look for keywords in comments or strings.
-  #(optional and not covered by patterns here)
+```javascript
+// Unsafe: susceptible to injection
+setTimeout("alert('hello')", 1000); 
 
-  # Since multiple patterns can't be separated in one regex easily, Windsurf will match any of these patterns 
-  # and show the advice below.
+// Safe:
+setTimeout(() => alert('hello'), 1000);
+```
 
-fix: |
-  1. Replace `.innerHTML` usages with `.innerText`, `.textContent`, or a safe templating method to prevent XSS.
-  2. Never use `eval()`, `new Function()`, `setTimeout()` or `setInterval()` with string arguments to avoid code injection.
-  3. Do not perform encryption or transmit secrets on the client side; keep secrets and encryption logic server-side.
-  4. Avoid building JSON or XML by string concatenation. Use built-in or third-party safe serialization libraries.
-  5. Never trust client-side security or business logic. Always enforce all security and business rules on the server.
-  6. On the server, validate all inputs rigorously as services can be called directly by attackers.
-  7. Use CSRF protection mechanisms for all state-changing AJAX requests.
-  8. Return JSON responses with an object as the outermost element to prevent JSON hijacking.
-  9. Use JSON or XML schemas with libraries to validate inputs and outputs of AJAX services.
+### 2. Prevent Cross-Site Scripting (XSS) with `innerHTML`
 
-notes: |
-  - For encoding untrusted data in HTML contexts, prefer `.innerText` over `.innerHTML`.
-  - The OWASP Java Encoder Project (https://owasp.org/www-project-java-encoder/) is a good resource.
-  - Avoid writing serialization code manually on either client or server side—use trusted libraries.
-  - Never rely on client side code for enforcing security or sensitive business logic.
-  - Protect AJAX endpoints as you would normal APIs: validate inputs, authenticate and authorize requests.
+Using `.innerHTML` to insert content into your web page can lead to XSS if the content is not properly sanitized.
+
+**Best Practice:**
+
+Use `.innerText` or `.textContent` when you only need to insert text. If you must insert HTML, use a secure templating engine that automatically handles sanitization.
+
+**Example:**
+
+```javascript
+// Unsafe:
+document.getElementById("div1").innerHTML = untrusted_user_input;
+
+// Safe:
+document.getElementById("div1").textContent = untrusted_user_input;
+```
+
+### 3. Secure Client-Side Encryption and Secret Handling
+
+Never perform encryption or handle secrets on the client side. Client-side code is visible and can be manipulated by attackers.
+
+**Best Practice:**
+
+All sensitive operations, including encryption and secret management, must be performed on the server.
+
+### 4. Safe JSON and XML Creation
+
+Building JSON or XML using string concatenation is error-prone and can lead to injection vulnerabilities.
+
+**Best Practice:**
+
+Use built-in browser APIs like `JSON.stringify()` or trusted third-party libraries to serialize data.
+
+**Example:**
+
+```javascript
+// Unsafe:
+let jsonString = '{"name":"' + name + '","email":"' + email + '"}';
+
+// Safe:
+let jsonString = JSON.stringify({ name: name, email: email });
+```
+
+### 5. Server-Side Enforcement of Security and Business Logic
+
+Client-side validation is for user experience, not security. An attacker can easily bypass it.
+
+**Best Practice:**
+
+Always enforce all security checks and business logic on the server. The server should never trust any data coming from the client.
+
+### Additional Recommendations:
+
+*   **Input Validation:** Rigorously validate all inputs on the server, as AJAX services can be called directly by attackers.
+*   **CSRF Protection:** Use anti-CSRF tokens for any state-changing AJAX requests.
+*   **JSON Hijacking:** Return JSON responses with an object as the outermost element to prevent JSON hijacking in older browsers.
+*   **Schema Validation:** Use JSON or XML schemas to validate the structure and types of data in AJAX requests and responses.
+*   **OWASP Resources:** The [OWASP Java Encoder Project](https://owasp.org/www-project-java-encoder/) is an excellent resource for server-side encoding.

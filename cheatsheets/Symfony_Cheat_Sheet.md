@@ -72,7 +72,7 @@ composer install symfony/security-csrf
 
 Enable/disable the CSRF protection in `config/packages/framework.yaml` file:
 
-```yaml
+
 framework:
     csrf_protection: ~
 ```
@@ -391,7 +391,7 @@ composer require nelmio/cors-bundle
 
 For Symfony Flex users, the installation generates a basic configuration file in the `config/packages` directory automatically. Take a look at the example configuration for routes starting with */API* prefix.
 
-```yaml
+
 # config/packages/nelmio_cors.yaml
 nelmio_cors:
     defaults:
@@ -438,25 +438,25 @@ By default, sessions are securely configured and enabled. However, they can be c
 
 Ensure `cookie_secure` is not explicitly set to `false`(it is set to `true` by default). Setting http only to `true` means that the cookie won't be accessible by JavaScript.
 
-```yaml
+
 cookie_httponly: true
 ```
 
 Make sure to set a short session TTL duration. According to [OWASP's recommendations](Session_Management_Cheat_Sheet.md), aim for a session TTL of 2-5 minutes for high-value applications and 15-30 minutes for lower-risk applications.
 
-```yaml
+
 cookie_lifetime: 5
 ```
 
 It is recommended to set `cookie_samesite` to either `lax` or `strict` to prevent cookies from being sent from cross-origin requests. `lax` allows the cookie to be sent along with "safe" top-level navigations and same-site requests. With `strict`  it would not be possible to send any cookie when the HTTP request is not from the same domain.
 
-```yaml
+
 cookie_samesite: lax|strict
 ```
 
 Setting `cookie_secure` to `auto` assures us that cookies are only sent over secure connections, meaning `true` for HTTPS and `false` for HTTP protocol.
 
-```yaml
+
 cookie_secure: auto
 ```
 
@@ -477,7 +477,7 @@ The `session.auto_start = 1` directive in PHP is used to automatically start a s
 
     In the example below [Entity User Provider](https://symfony.com/doc/current/security/user_providers.html#security-entity-user-provider) is presented which uses Doctrine to fetch user by unique identifier.
 
-    ```yaml
+    
     providers:
         app_user_provider:
             entity:
@@ -489,7 +489,7 @@ The `session.auto_start = 1` directive in PHP is used to automatically start a s
 
     Symfony uses firewalls to define security configurations for different parts of an application. Each firewall defines a specific set of rules and actions for incoming requests. They protect different sections of the application by specifying which routes or URLs are secured, the authentication mechanisms to use, and how to handle unauthorized access. A firewall can be associated with specific patterns, request methods, access controls, and authentication providers.
 
-    ```yaml
+    
     firewalls:
         dev: # disable security on routes used in development env
             pattern: ^/(_(profiler|wdt)|css|images|js)/
@@ -511,7 +511,7 @@ The `session.auto_start = 1` directive in PHP is used to automatically start a s
 
     Access control determines which users can access specific parts of an application. These rules consist of path patterns and required roles or permissions. Access control rules are configured under `access_control` key.
 
-    ```yaml
+    
     access_control:
         - { path: ^/admin, roles: ROLE_ADMIN } # only user with ROLE_ADMIN role is allowed
         - { path: ^/login, roles: PUBLIC_ACCESS } # everyone can access this route

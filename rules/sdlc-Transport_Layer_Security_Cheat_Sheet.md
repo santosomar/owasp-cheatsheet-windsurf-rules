@@ -1,17 +1,13 @@
-```yaml
 ---
 trigger: glob
 globs: [js, ts, java, py, rb, go, c, cpp, cs, config, yml, yaml, pem, crt, key, conf, nginx, apache, toml]
 ---
 
-rule: enforce_secure_tls_and_certificate_practices
-name: Enforce Strong TLS Configuration and Certificate Security
-desc: |
+
   Ensure your application uses modern, strong TLS protocols and cipher suites,
   manages certificates securely, enforces HTTPS site-wide, and protects sensitive data in transit.
   This prevents common TLS vulnerabilities and enhances communication security.
 
-severity: high
 
 patterns:
   - pattern-not: |
@@ -67,7 +63,7 @@ patterns:
       # Recommend testing TLS configuration regularly with SSL Labs, testssl.sh, etc.
       tls_testing_practices: true
 
-message: |
+
   Follow these critical TLS security best practices:
   - Use TLS 1.3 by default; fallback to 1.2 only if necessary, disable older protocols and SSL.
   - Configure strong cipher suites (AEAD GCM), secure DH groups, and disable TLS compression.

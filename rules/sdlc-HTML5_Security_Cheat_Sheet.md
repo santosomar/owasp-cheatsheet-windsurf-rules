@@ -1,11 +1,9 @@
-```yaml
 ---
 trigger: glob
 globs: [js, jsx, ts, tsx, html]
 ---
 
-id: owasp-html5-security-best-practices
-message: |
+
   Follow OWASP HTML5 Security best practices to prevent vulnerabilities in your web app.
   Key actionable advice:
   - Web Messaging:
@@ -44,6 +42,6 @@ message: |
     * Use explicit user consent for offline app caching.
 
   Adhering to these practices reduces risks of XSS, CSRF, clickjacking, data leakage, and DoS in modern HTML5 applications.
-severity: warning
+
 languages: [javascript, typescript, html]
 ```

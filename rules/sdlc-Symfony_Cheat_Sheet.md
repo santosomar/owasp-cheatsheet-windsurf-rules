@@ -1,17 +1,13 @@
-```yaml
 ---
 trigger: glob
 globs: [php, twig, yml, yaml]
 ---
 
-id: symfony-security-best-practices
-name: Symfony Security Best Practices
-description: |
+
+
   Enforce critical security best practices when developing Symfony applications.
 
-message: "{{ message }}"
 
-severity: WARNING
 
 patterns:
   # 1. Cross-Site Scripting (XSS)

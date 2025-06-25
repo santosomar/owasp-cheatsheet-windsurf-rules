@@ -1,14 +1,13 @@
-```yaml
 ---
 trigger: glob
 globs: [py, html, txt, env]
 ---
 
-id: django-security-best-practices
+
 name: Django Security Best Practices
-description: |
+
   Enforce critical Django security recommendations including dependency updates, safe configuration, strong authentication, secure keys, middleware usage, cookie settings, CSRF/XSS protection and HTTPS enforcement.
-severity: high
+ high
 languages: [python, html]
 tags: [security, django, authentication, csrf, xss, https, secrets]
 
@@ -16,7 +15,7 @@ pattern: |
   # This rule scans for common Django security misconfigurations and provides best practice advice.
   # It is advisory and does not enforce code changes but highlights security-critical areas.
 
-message: |
+
   {{ advice }}
 
 # This Windsurf rule inspects settings and code for common Django security settings and usage patterns, issuing guidance where improvements are needed.
@@ -138,5 +137,4 @@ validate: |
 
   advice = "\n".join(outputs) if outputs else "No immediate Django security misconfigurations detected. Ensure to follow all best practices."
 
-  return advice
-```
+

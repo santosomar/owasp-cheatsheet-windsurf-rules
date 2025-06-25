@@ -23,7 +23,7 @@ If you really, **really** have to do this, you should secure it. Check how to do
 
 **Do not expose _/var/run/docker.sock_ to other containers**. If you are running your docker image with `-v /var/run/docker.sock://var/run/docker.sock` or similar, you should change it. Remember that mounting the socket read-only is not a solution but only makes it harder to exploit. Equivalent in the docker compose file is something like this:
 
-```yaml
+
 volumes:
   - "/var/run/docker.sock:/var/run/docker.sock"
 ```
@@ -53,7 +53,7 @@ More information about this topic can be found at [Docker official documentation
 
 In Kubernetes, this can be configured in [Security Context](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/) using the `runAsUser` field with the user ID e.g:
 
-```yaml
+
 apiVersion: v1
 kind: Pod
 metadata:
@@ -84,7 +84,7 @@ docker run --cap-drop all --cap-add CHOWN alpine
 
 In Kubernetes this can be configured in [Security Context](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/) using `capabilities` field e.g:
 
-```yaml
+
 apiVersion: v1
 kind: Pod
 metadata:
@@ -108,7 +108,7 @@ Always run your docker images with `--security-opt=no-new-privileges` in order t
 
 In Kubernetes, this can be configured in [Security Context](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/) using `allowPrivilegeEscalation` field e.g.:
 
-```yaml
+
 apiVersion: v1
 kind: Pod
 metadata:
@@ -163,7 +163,7 @@ docker run --read-only --tmpfs /tmp alpine sh -c 'echo "whatever" > /tmp/file'
 
 The Docker Compose `compose.yml` equivalent would be:
 
-```yaml
+
 version: "3"
 services:
   alpine:
@@ -173,7 +173,7 @@ services:
 
 Equivalent in Kubernetes in [Security Context](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/):
 
-```yaml
+
 apiVersion: v1
 kind: Pod
 metadata:
@@ -282,7 +282,7 @@ docker service create --name web --secret my_secret nginx:latest
 
 Or for Docker Compose:
 
-```yaml
+
 version: "3.8"
 secrets:
   my_secret:

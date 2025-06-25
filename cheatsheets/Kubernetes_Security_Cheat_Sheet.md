@@ -375,7 +375,7 @@ Security Context Settings:
 
 #### Security context example: A pod definition that includes security context parameters
 
-```yaml
+
 apiVersion: v1
 
 kind: Pod
@@ -414,7 +414,7 @@ The Pod Security Admission Controller allows you to enforce, audit, or warn upon
 
 Below is an example of a namespace that would only allow Pods to be deployed that conform to the restricted Pod Security Standard:
 
-```yaml
+
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -548,7 +548,7 @@ Below is an example of defining namespace resource quota in the appropriate yaml
 
 `compute-resources.yaml`:
 
-```yaml
+
 apiVersion: v1
 kind: ResourceQuota
 metadata:
@@ -782,7 +782,7 @@ The first layer of logs that can be collected from a Kubernetes cluster are thos
 
 Manifest is as follows.
 
-```yaml
+
 apiVersion: v1
 kind: Pod
 metadata:
@@ -810,7 +810,7 @@ For persisting container logs, the common approach is to write logs to a log fil
 
 An example of a Pod Manifest is seen below:
 
-```yaml
+
 apiVersion: v1
 kind: Pod
 metadata:

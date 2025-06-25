@@ -1,11 +1,10 @@
-```yaml
 ---
 trigger: glob
 globs: [java, kt, swift, m, plist, xml, gradle]
 ---
 
-id: MOBILE_SECURE_DEVELOPMENT
-message: |
+
+
   Follow mobile security best practices to protect your app and users:
   - Design with least privilege and defense in depth; embed security from the start.
   - Use standard secure authentication protocols (OAuth2, JWT) and perform all auth checks on the server.
@@ -21,7 +20,7 @@ message: |
   - Conduct automated and manual security testing regularly and monitor your app post-release.
   - Prepare incident response and enforce timely app updates, including forced updates if needed.
 
-severity: high
+
 confidence: high
 tags: [mobile-security, authentication, encryption, network-security, code-integrity, platform-specific]
 

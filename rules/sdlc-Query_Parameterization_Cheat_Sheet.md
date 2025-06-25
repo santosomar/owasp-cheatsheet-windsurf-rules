@@ -1,20 +1,14 @@
-```yaml
 ---
 trigger: glob
 globs: [java, cs, csharp, php, rb, pl, sql, cfml, rs]
 ---
 
-id: avoid-sql-injection-parameterized-queries
-name: Use Parameterized Queries to Prevent SQL Injection
-description: |
   Detect and prevent risks of SQL Injection by always using parameterized queries or prepared statements, and avoid unsafe string concatenation for SQL commands.
-severity: high
-tags: [security, injection, sql-injection, best-practice]
 
-message: |
+
   Use parameterized queries or prepared statements instead of concatenating user input into SQL queries. This prevents attackers from altering the intended SQL commands.
 
-recommendation: |
+
   - Always use language- or framework-specific parameterized queries or prepared statements to pass user input as parameters, not literals in query strings.
   - Validate and sanitize inputs before using them, especially if inputs are used in query parameters.
   - Avoid dynamic SQL where possible. If dynamic SQL is necessary, use bind variables or parameter binding features of your database driver or API.

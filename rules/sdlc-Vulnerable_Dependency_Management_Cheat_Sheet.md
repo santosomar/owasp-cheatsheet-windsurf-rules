@@ -1,24 +1,13 @@
-```yaml
 ---
 trigger: glob
 globs: [pom.xml, build.gradle, package.json, yarn.lock, requirements.txt, *.csproj, go.mod, vendor.json]
 ---
 
-rule: "Vulnerable Dependency Management Best Practices"
-summary: "Proactively detect, assess, and mitigate vulnerable dependencies to reduce security risks."
-description: |
+
   Dependencies introduce security risks that must be managed early and continuously. Integrate automated vulnerability scanning from project inception, utilize tools covering multiple feeds (CVE and full disclosure), and ensure skilled security expertise is involved. Apply the correct mitigation approach based on patch availability, thoroughly test mitigations, and document all decisions clearly. Engage risk management for any accepted risks and prefer fixing issues at the application or dependency source.
 
-severity: high
 
-tags:
-  - security
-  - dependencies
-  - supply-chain
-  - vulnerability-management
-  - devsecops
 
-recommendations:
   - "Integrate automated vulnerability scanning tools (e.g., OWASP Dependency Check, NPM Audit) from project start and run scans continuously."
   - "Choose tools that aggregate multiple vulnerability feeds including CVE databases and full disclosure sources."
   - "Assign or consult with team members skilled in application security to analyze and prioritize findings."

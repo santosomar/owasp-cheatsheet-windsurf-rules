@@ -1,11 +1,10 @@
-```yaml
 ---
 trigger: glob
 globs: [js, mjs, cjs]
 ---
 
 rule: nodejs-secure-coding-best-practices
-message: |
+
   Follow these essential Node.js security best practices to protect your application:
     • Use async/await or flat Promise chains to avoid callback hell and improve error handling.
     • Limit request body size and validate content types to prevent resource exhaustion.

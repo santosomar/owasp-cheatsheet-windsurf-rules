@@ -1,4 +1,3 @@
-```yaml
 ---
 trigger: glob
 globs: [.java,.js,.ts,.go,.py,.rb,.cs,.json,.yaml,.yml]
@@ -6,7 +5,7 @@ globs: [.java,.js,.ts,.go,.py,.rb,.cs,.json,.yaml,.yml]
 
 title: Secure Microservices Authorization and Authentication Best Practices
 
-description: |
+
   Ensure microservices implement defense-in-depth authorization, secure identity propagation, strong service authentication, and robust, privacy-conscious logging.
 
 author: OWASP Microservices Security Cheat Sheet (summary)

@@ -1,4 +1,3 @@
-
 ---
 trigger: glob
 globs: [Dockerfile, yml, yaml, sh, k8s, kubernetes]
