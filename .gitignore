@@ -1,0 +1,47 @@
+# Python virtual environment
+.venv
+
+# MacOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints
+__pycache__
+*.py[co]
+
+# Build and distribution
+build/
+dist/
+*.egg-info/
+*.egg
+*.spec
+*.log
+*.db
+*.sqlite
+*.db-journal
+*.mo
+*.pot
+*.whl
+*.egg-info/PKG-INFO
+*.egg-info/SOURCES.txt
+*.egg-info/dependency_links.txt
+*.egg-info/top_level.txt
+*.egg-info/not-zip-safe
+local_settings.py
+settings_local.py
+instance/
+.mypy_cache/
+
+# IDEs
+.idea/
+.vscode/
+.env
+.env.example
+.env.local
+.env.local.example
+.env.development.local
+.env.production.local
+.env.test.local
